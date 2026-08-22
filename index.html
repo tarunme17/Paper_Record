@@ -1,0 +1,3420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Notebook Paper Manager</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#102a56">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Paper Manager">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<style>
+*{box-sizing:border-box}
+:root{
+  --primary:#1769e0;
+  --primary2:#0d47a1;
+  --bg:#f4f7fb;
+  --card:#fff;
+  --text:#172033;
+  --muted:#6b7280;
+  --border:#dce3ed;
+  --danger:#dc3545;
+  --success:#198754;
+  --shadow:0 4px 18px rgba(20,40,80,.08)
+}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--text)
+}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.app{display:flex;min-height:100vh}
+
+/* SIDEBAR */
+.sidebar{
+  width:250px;
+  background:#102a56;
+  color:white;
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  z-index:1000;
+  padding:18px 12px;
+  overflow-y:auto
+}
+.logo{
+  font-size:21px;
+  font-weight:700;
+  padding:8px 10px 20px
+}
+.current-profile{
+  background:rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:11px;
+  margin-bottom:14px;
+  font-size:12px
+}
+.current-profile b{display:block;font-size:14px;margin-top:4px}
+.nav-title{
+  color:#9fb4d6;
+  font-size:11px;
+  text-transform:uppercase;
+  padding:12px 10px 5px
+}
+.nav button{
+  width:100%;
+  border:0;
+  background:transparent;
+  color:#dbe7fa;
+  text-align:left;
+  padding:11px 12px;
+  border-radius:8px;
+  margin:2px 0;
+  font-size:14px
+}
+.nav button:hover,.nav button.active{
+  background:#1d5bb8;
+  color:white
+}
+.main{
+  margin-left:250px;
+  width:calc(100% - 250px);
+  padding:22px
+}
+.mobile-header{display:none}
+
+/* COMMON */
+.page{display:none}
+.page.active{display:block}
+.page-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-bottom:18px
+}
+.page-title h1{margin:0;font-size:25px}
+.muted{color:var(--muted);font-size:13px}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:18px;
+  box-shadow:var(--shadow)
+}
+.card h2,.card h3{margin-top:0}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:14px
+}
+.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+label{
+  display:block;
+  font-size:12px;
+  font-weight:700;
+  margin-bottom:6px
+}
+input,select,textarea{
+  width:100%;
+  padding:10px 11px;
+  border:1px solid #cfd8e5;
+  border-radius:8px;
+  background:white;
+  outline:none
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(23,105,224,.1)
+}
+.btns{
+  display:flex;
+  gap:9px;
+  flex-wrap:wrap;
+  margin-top:15px
+}
+button.primary{
+  background:var(--primary);
+  color:white;
+  border:0;
+  padding:10px 15px;
+  border-radius:8px;
+  font-weight:600
+}
+button.secondary{
+  background:white;
+  color:#26364f;
+  border:1px solid #cbd5e1;
+  padding:9px 14px;
+  border-radius:8px
+}
+button.danger{
+  background:#fff0f1;
+  color:var(--danger);
+  border:1px solid #f2b8bd;
+  padding:9px 14px;
+  border-radius:8px
+}
+.badge{
+  display:inline-block;
+  background:#e7f0ff;
+  color:#1558ba;
+  padding:4px 8px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:700
+}
+.success{color:var(--success)}
+.error{color:var(--danger)}
+.notice{
+  padding:12px;
+  background:#f4f8ff;
+  border:1px solid #d9e7ff;
+  border-radius:8px;
+  color:#31517e;
+  font-size:13px
+}
+
+/* DASHBOARD */
+.stat-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px
+}
+.stat{
+  background:white;
+  border:1px solid var(--border);
+  border-radius:13px;
+  padding:17px;
+  box-shadow:var(--shadow)
+}
+.stat .label{font-size:12px;color:var(--muted)}
+.stat .value{font-size:25px;font-weight:700;margin-top:7px}
+
+/* TABLE */
+.table-wrap{overflow:auto}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:650px
+}
+th,td{
+  padding:10px;
+  border-bottom:1px solid #e8edf4;
+  text-align:left;
+  font-size:13px
+}
+th{
+  background:#f7f9fc;
+  font-size:12px;
+  white-space:nowrap
+}
+tr:hover td{background:#fbfdff}
+
+/* PROFILE */
+.profile-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px
+}
+.profile-card{
+  border:1px solid var(--border);
+  border-radius:11px;
+  padding:14px;
+  background:white
+}
+.profile-card.current{
+  border-color:#7ca9ed;
+  background:#f2f7ff
+}
+
+/* LOADER */
+.loader{
+  position:fixed;
+  inset:0;
+  background:rgba(255,255,255,.55);
+  backdrop-filter:blur(2px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:5000
+}
+.loader.show{display:flex}
+.loader-box{
+  background:white;
+  border-radius:12px;
+  padding:16px 22px;
+  box-shadow:0 8px 30px rgba(0,0,0,.15);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:13px
+}
+.spinner{
+  width:20px;
+  height:20px;
+  border:3px solid #d9e5f7;
+  border-top-color:var(--primary);
+  border-radius:50%;
+  animation:spin .7s linear infinite
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* MOBILE */
+@media(max-width:800px){
+  .sidebar{
+    transform:translateX(-100%);
+    transition:.2s
+  }
+  .sidebar.open{transform:translateX(0)}
+  .main{
+    margin-left:0;
+    width:100%;
+    padding:14px
+  }
+  .mobile-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:14px
+  }
+  .mobile-header button{
+    border:0;
+    background:#102a56;
+    color:white;
+    border-radius:8px;
+    padding:9px 12px
+  }
+  .grid,.grid-3,.grid-2{
+    grid-template-columns:1fr
+  }
+  .stat-grid{
+    grid-template-columns:repeat(2,1fr)
+  }
+  .profile-list{grid-template-columns:1fr}
+  .page-title h1{font-size:21px}
+  .overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.35);
+    z-index:900
+  }
+  .overlay.show{display:block}
+}
+</style>
+</head>
+
+<body>
+
+<div id="loader" class="loader">
+  <div class="loader-box">
+    <div class="spinner"></div>
+    <span id="loaderText">Saving...</span>
+  </div>
+</div>
+
+<div id="overlay" class="overlay" onclick="closeSidebar()"></div>
+
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside id="sidebar" class="sidebar">
+  <div class="logo">📚 Paper Manager</div>
+
+  <div class="current-profile">
+    Current Profile
+    <b id="sideProfile">Default Business</b>
+  </div>
+
+  <div class="nav-title">Main</div>
+  <div class="nav">
+    <button data-page="dashboard">📊 Dashboard</button>
+    <button data-page="paper">📄 Paper Purchase</button>
+    <button data-page="covers">📕 Cover Purchase</button>
+    <button data-page="production">🏭 Production</button>
+    <button data-page="records">📋 Records</button>
+  </div>
+
+  <div class="nav-title">Management</div>
+  <div class="nav">
+    <button data-page="profiles">👥 Business Profiles</button>
+    <button data-page="items">⚙ Item Setup</button>
+    <button data-page="import">📥 Import PDF</button>
+    <button data-page="backup">💾 Backup</button>
+  </div>
+</aside>
+
+<main class="main">
+
+  <div class="mobile-header">
+    <button onclick="openSidebar()">☰ Menu</button>
+    <b>Notebook Paper Manager</b>
+  </div>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="page active">
+
+  <div class="page-title">
+    <div>
+      <h1>Dashboard</h1>
+      <div class="muted">Current business record</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 id="dashboardProfile">Default Business</h3>
+    <div class="muted">All figures below belong only to this profile.</div>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat">
+      <div class="label">Paper Reams</div>
+      <div id="statPaper" class="value">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Covers</div>
+      <div id="statCovers" class="value">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Books Produced</div>
+      <div id="statBooks" class="value">0</div>
+    </div>
+    <div class="stat">
+      <div class="label">Remaining Reams</div>
+      <div id="statRemaining" class="value">0</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Paper Stock by Category</h3>
+    <div id="dashboardStock"></div>
+  </div>
+
+</section>
+
+
+<!-- PAPER -->
+<section id="paper" class="page">
+
+  <div class="page-title">
+    <div>
+      <h1>Paper Purchase</h1>
+      <div class="muted">Enter paper directly in reams.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Add Paper</h3>
+
+    <div class="grid">
+      <div>
+        <label>Date</label>
+        <input type="date" id="paperDate">
+      </div>
+
+      <div>
+        <label>Bill No.</label>
+        <input id="paperBill" placeholder="Bill number">
+      </div>
+
+      <div>
+        <label>Category</label>
+        <select id="paperCategory">
+          <option value="">Select category</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Reams Purchased</label>
+        <input type="number" id="paperReams" min="0" step="0.01" placeholder="e.g. 6">
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" onclick="addPaper()">Add Paper</button>
+      <button class="secondary" onclick="clearPaper()">Clear</button>
+    </div>
+
+    <div id="paperMsg"></div>
+  </div>
+
+  <div class="card">
+    <h3>Current Paper Stock</h3>
+    <div id="paperStockTable"></div>
+  </div>
+
+</section>
+
+
+<!-- COVERS -->
+<section id="covers" class="page">
+
+  <div class="page-title">
+    <div>
+      <h1>Cover Purchase</h1>
+      <div class="muted">Maintain cover quantity separately from paper.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Add Covers</h3>
+
+    <div class="grid">
+      <div>
+        <label>Date</label>
+        <input type="date" id="coverDate">
+      </div>
+
+      <div>
+        <label>Bill No.</label>
+        <input id="coverBill" placeholder="Bill number">
+      </div>
+
+      <div>
+        <label>Category</label>
+        <select id="coverCategory">
+          <option value="">Select category</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Cover Quantity</label>
+        <input type="number" id="coverQty" min="0" step="1" placeholder="Quantity">
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" onclick="addCovers()">Add Covers</button>
+      <button class="secondary" onclick="clearCovers()">Clear</button>
+    </div>
+
+    <div id="coverMsg"></div>
+  </div>
+
+  <div class="card">
+    <h3>Cover Stock</h3>
+    <div id="coverStockTable"></div>
+  </div>
+
+</section>
+
+
+<!-- PRODUCTION -->
+<section id="production" class="page">
+
+  <div class="page-title">
+    <div>
+      <h1>Notebook Production</h1>
+      <div class="muted">Add production independently from paper purchases.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Add Production</h3>
+
+    <div class="grid">
+      <div>
+        <label>Date</label>
+        <input type="date" id="prodDate">
+      </div>
+
+      <div>
+        <label>Bill No.</label>
+        <input id="prodBill" placeholder="Bill number">
+      </div>
+
+      <div>
+        <label>Category</label>
+        <select id="prodCategory" onchange="updateProductionInfo()">
+          <option value="">Select category</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Pages</label>
+        <input type="number" id="prodPages" min="1" step="1" value="96" onchange="updateProductionInfo()">
+      </div>
+
+      <div>
+        <label>Notebook Quantity</label>
+        <input type="number" id="prodQty" min="1" step="1" placeholder="Quantity">
+      </div>
+    </div>
+
+    <div id="productionInfo" class="notice" style="margin-top:15px">
+      Select a category and enter quantity.
+    </div>
+
+    <div class="btns">
+      <button class="primary" onclick="addProduction()">Add Production</button>
+      <button class="secondary" onclick="clearProduction()">Clear</button>
+    </div>
+
+    <div id="productionMsg"></div>
+  </div>
+
+  <div class="card">
+    <h3>Production Records</h3>
+    <div id="productionTable"></div>
+  </div>
+
+</section>
+
+
+<!-- RECORDS -->
+<section id="records" class="page">
+
+  <div class="page-title">
+    <div>
+      <h1>Records</h1>
+      <div class="muted">All transactions for the current profile.</div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="grid">
+      <div>
+        <label>Record Type</label>
+        <select id="recordType">
+          <option value="all">All</option>
+          <option value="paper">Paper Purchase</option>
+          <option value="covers">Cover Purchase</option>
+          <option value="production">Production</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Category</label>
+        <select id="recordCategory">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+
+      <div>
+        <label>From Date</label>
+        <input type="date" id="recordFrom">
+      </div>
+
+      <div>
+        <label>To Date</label>
+        <input type="date" id="recordTo">
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" onclick="renderRecords()">Apply Filter</button>
+      <button class="secondary" onclick="clearRecordFilter()">Clear</button>
+      <button class="secondary" onclick="exportRecords()">⬇ Export to Excel</button>
+      <button class="secondary" onclick="exportRecordsPDF()">⬇ Export to PDF</button>
+    </div>
+
+    <div id="recordsExportMsg"></div>
+  </div>
+
+  <div class="card">
+    <div id="recordsTable"></div>
+  </div>
+
+</section>
+
+
+<!-- PROFILES -->
+<section id="profiles" class="page">
+
+  <div class="page-title">
+    <div>
+      <h1>Business Profiles</h1>
+      <div class="muted">
+        Each profile maintains completely independent records.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="grid-2 grid">
+      <div>
+        <label>New Profile / Party Name</label>
+        <input id="newProfileName" placeholder="Enter profile name">
+      </div>
+
+      <div style="display:flex;align-items:end">
+        <button class="primary" onclick="createProfile()">＋ Create Profile</button>
+      </div>
+    </div>
+
+    <div id="profileMsg"></div>
+  </div>
+
+  <div class="card">
+    <h3>Share / Receive a Record</h3>
+    <div class="muted" style="margin-bottom:12px">
+      Share a single profile's full record with someone else using this same
+      application. Use "Share (Download)" to send a file, or "Copy Text" if
+      downloads are blocked on your device — paste the copied text into any
+      message app and have the other person paste it back in below.
+    </div>
+
+    <div class="grid-2 grid">
+      <div>
+        <label>Import Shared Record File</label>
+        <input type="file" id="sharedRecordFile" accept=".json"
+               onchange="importSharedProfile()">
+      </div>
+    </div>
+
+    <div style="margin-top:16px">
+      <label>Or Paste Shared Record Text</label>
+      <textarea id="sharedRecordText" rows="4"
+        placeholder="Paste the copied record text here, then click Import from Text"></textarea>
+
+      <div class="btns">
+        <button class="primary" onclick="importSharedProfileFromText()">
+          Import from Text
+        </button>
+      </div>
+    </div>
+
+    <div id="shareMsg"></div>
+  </div>
+
+  <div class="card">
+    <h3>Your Profiles</h3>
+    <div id="profileList" class="profile-list"></div>
+  </div>
+
+</section>
+
+
+<!-- ITEMS -->
+<section id="items" class="page">
+
+  <div class="page-title">
+    <div>
+      <h1>Item Setup</h1>
+      <div class="muted">
+        Add custom notebook types here. Items are available only in the current profile.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <h3>Add Custom Item</h3>
+
+    <div class="grid">
+      <div>
+        <label>Item Name</label>
+        <input id="itemName" placeholder="e.g. Special Register">
+      </div>
+
+      <div>
+        <label>Variety / Grade</label>
+        <input id="itemBrand" placeholder="e.g. Special">
+      </div>
+
+      <div>
+        <label>Size</label>
+        <input id="itemSize" placeholder="e.g. A5">
+      </div>
+
+      <div>
+        <label>Sheets per Notebook</label>
+        <input type="number" id="itemSheets" min="1" step="0.01" placeholder="e.g. 23">
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" onclick="addCustomItem()">＋ Add Item</button>
+      <button class="secondary" onclick="clearItemForm()">Clear</button>
+    </div>
+
+    <div id="itemMsg"></div>
+
+  </div>
+
+  <div class="card">
+    <h3>Available Items</h3>
+    <div id="itemsTable"></div>
+  </div>
+
+</section>
+
+
+<!-- IMPORT -->
+<section id="import" class="page">
+
+  <div class="page-title">
+    <div>
+      <h1>Import PDF Statement</h1>
+      <div class="muted">
+        Import production records from a PDF purchase/bill statement, then filter before confirming.
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <div class="notice" style="margin-bottom:15px">
+      Matching rules are the same as before: a line is recognized as
+      <b>Premium A4</b> if it mentions "real" + "long", <b>Premium Convent</b>
+      if it mentions "real" without "long", <b>Writon A4</b> for "007" + "long",
+      and <b>Writon Convent</b> for "007" without "long" — or any item name you've set up.
+    </div>
+
+    <div class="grid">
+      <div>
+        <label>PDF Statement File</label>
+        <input type="file" id="pdfFile" accept=".pdf">
+      </div>
+
+      <div>
+        <label>From Date</label>
+        <input type="date" id="importFrom">
+      </div>
+
+      <div>
+        <label>To Date</label>
+        <input type="date" id="importTo">
+      </div>
+
+      <div>
+        <label>Bill From</label>
+        <input type="number" id="importBillFrom">
+      </div>
+
+      <div>
+        <label>Bill To</label>
+        <input type="number" id="importBillTo">
+      </div>
+
+      <div>
+        <label>Category</label>
+        <select id="importCategory">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" onclick="previewImport()">Preview</button>
+      <button class="secondary" onclick="clearImport()">Clear</button>
+    </div>
+
+    <div id="importMsg"></div>
+  </div>
+
+  <div class="card">
+    <h3>Import Preview</h3>
+    <div id="importPreview">No PDF selected.</div>
+
+    <div class="btns">
+      <button id="importConfirmBtn" class="primary" style="display:none" onclick="commitImport()">
+        Import Selected Records
+      </button>
+    </div>
+  </div>
+
+</section>
+
+
+<!-- BACKUP -->
+<section id="backup" class="page">
+
+  <div class="page-title">
+    <div>
+      <h1>Backup & Restore</h1>
+      <div class="muted">Keep a backup of your records.</div>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <h3>Local Backup</h3>
+
+    <p class="muted">
+      The backup contains all profiles and their separate records.
+    </p>
+
+    <div class="btns">
+      <button class="primary" onclick="downloadBackup()">Download Backup</button>
+
+      <label class="secondary" style="display:inline-block">
+        Restore Backup
+        <input type="file" id="restoreFile" accept=".json"
+               onchange="restoreBackup()" style="display:none">
+      </label>
+    </div>
+
+    <div id="backupMsg"></div>
+
+  </div>
+
+</section>
+
+</main>
+</div>
+
+
+<script>
+
+/* =========================================================
+   DATA
+========================================================= */
+
+const BUILTIN_ITEMS = [
+  {
+    id:"premium_convent",
+    name:"Premium Convent",
+    brand:"Premium",
+    size:"Convent",
+    sheetsPerBook:23
+  },
+  {
+    id:"premium_a4",
+    name:"Premium A4",
+    brand:"Premium",
+    size:"A4",
+    sheetsPerBook:23
+  },
+  {
+    id:"writon_convent",
+    name:"Writon Convent",
+    brand:"Writon",
+    size:"Convent",
+    sheetsPerBook:23
+  },
+  {
+    id:"writon_a4",
+    name:"Writon A4",
+    brand:"Writon",
+    size:"A4",
+    sheetsPerBook:23
+  }
+];
+
+const STORAGE_KEY="notebook_paper_manager_v10";
+
+let state={
+  activeProfile:"Default Business",
+  profiles:{
+    "Default Business":newProfile()
+  }
+};
+
+let importRows=[];
+
+
+/* =========================================================
+   PROFILE / STORAGE
+========================================================= */
+
+function newProfile(){
+  return {
+    paper:[],
+    covers:[],
+    production:[],
+    customItems:[]
+  };
+}
+
+function loadData(){
+
+  try{
+
+    const saved=localStorage.getItem(STORAGE_KEY);
+
+    if(saved){
+
+      const parsed=JSON.parse(saved);
+
+      if(parsed &&
+         parsed.profiles &&
+         Object.keys(parsed.profiles).length){
+
+        state=parsed;
+
+      }
+
+    }
+
+  }catch(e){
+
+    console.error(e);
+
+  }
+
+  if(!state.profiles)
+    state.profiles={};
+
+  if(!state.activeProfile)
+    state.activeProfile=Object.keys(state.profiles)[0];
+
+  if(!state.profiles[state.activeProfile])
+    state.profiles[state.activeProfile]=newProfile();
+
+  normalizeProfile();
+
+}
+
+function saveData(){
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(state)
+  );
+
+}
+
+function normalizeProfile(){
+
+  const p=currentProfile();
+
+  if(!p.paper)p.paper=[];
+  if(!p.covers)p.covers=[];
+  if(!p.production)p.production=[];
+  if(!p.customItems)p.customItems=[];
+
+}
+
+function currentProfile(){
+
+  return state.profiles[state.activeProfile];
+
+}
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function today(){
+
+  const d=new Date();
+
+  const y=d.getFullYear();
+  const m=String(d.getMonth()+1).padStart(2,"0");
+  const day=String(d.getDate()).padStart(2,"0");
+
+  return `${y}-${m}-${day}`;
+
+}
+
+function money(n){
+
+  return Number(n||0).toFixed(2);
+
+}
+
+function showLoader(text){
+
+  document.getElementById("loaderText").textContent=text||"Saving...";
+  document.getElementById("loader").classList.add("show");
+
+}
+
+function hideLoader(){
+
+  document.getElementById("loader").classList.remove("show");
+
+}
+
+function flash(elementId,text,success=true){
+
+  const e=document.getElementById(elementId);
+
+  if(!e)return;
+
+  e.innerHTML=
+    `<div style="margin-top:10px" class="${success?"success":"error"}">
+      ${escapeHtml(text)}
+    </div>`;
+
+  setTimeout(()=>e.innerHTML="",2200);
+
+}
+
+function escapeHtml(value){
+
+  return String(value??"")
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+function getItems(){
+
+  return BUILTIN_ITEMS.concat(
+    currentProfile().customItems.map(x=>({
+      id:x.id,
+      name:x.name,
+      brand:x.brand,
+      size:x.size,
+      sheetsPerBook:Number(x.sheetsPerBook)||23,
+      custom:true
+    }))
+  );
+
+}
+
+function getItem(id){
+
+  return getItems().find(x=>String(x.id)===String(id));
+
+}
+
+function categoryName(id){
+
+  const item=getItem(id);
+
+  return item ? item.name : "Unknown";
+
+}
+
+function setDefaultDates(){
+
+  document.querySelectorAll(
+    "#paperDate,#coverDate,#prodDate"
+  ).forEach(e=>{
+
+    if(!e.value)e.value=today();
+
+  });
+
+}
+
+
+/* =========================================================
+   NAVIGATION
+========================================================= */
+
+function openSidebar(){
+
+  document.getElementById("sidebar").classList.add("open");
+  document.getElementById("overlay").classList.add("show");
+
+}
+
+function closeSidebar(){
+
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("overlay").classList.remove("show");
+
+}
+
+function showPage(page){
+
+  document.querySelectorAll(".page")
+    .forEach(p=>p.classList.remove("active"));
+
+  const target=document.getElementById(page);
+
+  if(!target)return;
+
+  target.classList.add("active");
+
+  document.querySelectorAll(".nav button")
+    .forEach(b=>{
+      b.classList.toggle(
+        "active",
+        b.dataset.page===page
+      );
+    });
+
+  closeSidebar();
+
+  refreshPage(page);
+
+}
+
+document.querySelectorAll(".nav button").forEach(btn=>{
+
+  btn.addEventListener("click",function(){
+
+    showPage(this.dataset.page);
+
+  });
+
+});
+
+
+/* =========================================================
+   CATEGORY DROPDOWNS
+========================================================= */
+
+function populateCategorySelect(id,includeAll=false){
+
+  const select=document.getElementById(id);
+
+  if(!select)return;
+
+  const oldValue=select.value;
+
+  select.innerHTML="";
+
+  const first=document.createElement("option");
+
+  first.value="";
+
+  first.textContent=
+    includeAll
+      ?"All Categories"
+      :"Select category";
+
+  select.appendChild(first);
+
+  getItems().forEach(item=>{
+
+    const option=document.createElement("option");
+
+    option.value=item.id;
+
+    option.textContent=item.name;
+
+    select.appendChild(option);
+
+  });
+
+  if(
+    [...select.options]
+      .some(o=>o.value===oldValue)
+  ){
+
+    select.value=oldValue;
+
+  }
+
+}
+
+function populateAllCategories(){
+
+  populateCategorySelect("paperCategory");
+  populateCategorySelect("coverCategory");
+  populateCategorySelect("prodCategory");
+  populateCategorySelect("recordCategory",true);
+  populateCategorySelect("importCategory",true);
+
+}
+
+
+/* =========================================================
+   PAPER
+========================================================= */
+
+function addPaper(){
+
+  const date=document.getElementById("paperDate").value;
+  const bill=document.getElementById("paperBill").value.trim();
+  const category=document.getElementById("paperCategory").value;
+  const reams=Number(document.getElementById("paperReams").value);
+
+  if(!date)
+    return flash("paperMsg","Please select date.",false);
+
+  if(!category)
+    return flash("paperMsg","Please select paper category.",false);
+
+  if(!(reams>0))
+    return flash("paperMsg","Enter reams greater than zero.",false);
+
+  showLoader("Adding paper...");
+
+  setTimeout(()=>{
+
+    currentProfile().paper.push({
+      id:Date.now(),
+      date,
+      bill,
+      category,
+      reams
+    });
+
+    saveData();
+
+    clearPaper();
+    renderAll();
+
+    hideLoader();
+
+    flash("paperMsg","Paper record added successfully.");
+
+  },250);
+
+}
+
+function clearPaper(){
+
+  document.getElementById("paperBill").value="";
+  document.getElementById("paperReams").value="";
+  document.getElementById("paperCategory").value="";
+  document.getElementById("paperDate").value=today();
+
+}
+
+function deletePaper(id){
+
+  if(!confirm("Delete this paper record?"))return;
+
+  showLoader("Deleting...");
+
+  setTimeout(()=>{
+
+    currentProfile().paper=
+      currentProfile().paper.filter(x=>x.id!==id);
+
+    saveData();
+    renderAll();
+
+    hideLoader();
+
+  },200);
+
+}
+
+function renderPaperStock(){
+
+  const p=currentProfile();
+
+  const map={};
+
+  getItems().forEach(i=>{
+    map[i.id]=0;
+  });
+
+  p.paper.forEach(r=>{
+
+    if(map[r.category]===undefined)
+      map[r.category]=0;
+
+    map[r.category]+=Number(r.reams)||0;
+
+  });
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Purchased Reams</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  getItems().forEach(item=>{
+
+    html+=
+      `<tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td><b>${money(map[item.id]||0)}</b></td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  document.getElementById("paperStockTable").innerHTML=html;
+
+}
+
+
+/* =========================================================
+   COVERS
+========================================================= */
+
+function addCovers(){
+
+  const date=document.getElementById("coverDate").value;
+  const bill=document.getElementById("coverBill").value.trim();
+  const category=document.getElementById("coverCategory").value;
+  const qty=Number(document.getElementById("coverQty").value);
+
+  if(!date)
+    return flash("coverMsg","Please select date.",false);
+
+  if(!category)
+    return flash("coverMsg","Please select category.",false);
+
+  if(!(qty>0))
+    return flash("coverMsg","Enter cover quantity.",false);
+
+  showLoader("Adding covers...");
+
+  setTimeout(()=>{
+
+    currentProfile().covers.push({
+      id:Date.now(),
+      date,
+      bill,
+      category,
+      qty
+    });
+
+    saveData();
+
+    clearCovers();
+    renderAll();
+
+    hideLoader();
+
+    flash("coverMsg","Cover record added successfully.");
+
+  },250);
+
+}
+
+function clearCovers(){
+
+  document.getElementById("coverBill").value="";
+  document.getElementById("coverQty").value="";
+  document.getElementById("coverCategory").value="";
+  document.getElementById("coverDate").value=today();
+
+}
+
+function renderCoverStock(){
+
+  const map={};
+
+  getItems().forEach(i=>map[i.id]=0);
+
+  currentProfile().covers.forEach(r=>{
+
+    if(map[r.category]===undefined)
+      map[r.category]=0;
+
+    map[r.category]+=Number(r.qty)||0;
+
+  });
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Cover Quantity</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  getItems().forEach(item=>{
+
+    html+=
+      `<tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td><b>${map[item.id]||0}</b></td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  document.getElementById("coverStockTable").innerHTML=html;
+
+}
+
+
+/* =========================================================
+   PRODUCTION
+========================================================= */
+
+function calculateSheets(category,pages,qty){
+
+  const item=getItem(category);
+
+  if(!item)return 0;
+
+  /*
+    Based on the user's existing calculation:
+    96-page notebook = 23 sheets.
+    The configurable sheetsPerBook allows custom items.
+  */
+
+  let sheetsPerBook=Number(item.sheetsPerBook)||23;
+
+  if(
+    !item.custom &&
+    Number(pages)===96
+  ){
+
+    sheetsPerBook=23;
+
+  }
+
+  return sheetsPerBook*Number(qty||0);
+
+}
+
+function updateProductionInfo(){
+
+  const category=document.getElementById("prodCategory").value;
+  const pages=Number(document.getElementById("prodPages").value)||96;
+
+  if(!category){
+
+    document.getElementById("productionInfo").textContent=
+      "Select a category and enter quantity.";
+
+    return;
+
+  }
+
+  const item=getItem(category);
+
+  const qty=Number(document.getElementById("prodQty").value)||0;
+
+  const sheets=calculateSheets(category,pages,qty);
+  const reams=sheets/500;
+
+  document.getElementById("productionInfo").innerHTML=
+    `<b>${escapeHtml(item.name)}</b><br>
+     Sheets per notebook: ${item.sheetsPerBook}<br>
+     Total paper sheets: ${sheets.toFixed(2)}<br>
+     Paper required: <b>${reams.toFixed(2)} reams</b>`;
+
+}
+
+function addProduction(){
+
+  const date=document.getElementById("prodDate").value;
+  const bill=document.getElementById("prodBill").value.trim();
+  const category=document.getElementById("prodCategory").value;
+  const pages=Number(document.getElementById("prodPages").value);
+  const qty=Number(document.getElementById("prodQty").value);
+
+  if(!date)
+    return flash("productionMsg","Please select date.",false);
+
+  if(!category)
+    return flash("productionMsg","Please select category.",false);
+
+  if(!(qty>0))
+    return flash("productionMsg","Enter notebook quantity.",false);
+
+  const sheets=calculateSheets(
+    category,
+    pages,
+    qty
+  );
+
+  showLoader("Adding production...");
+
+  setTimeout(()=>{
+
+    currentProfile().production.push({
+      id:Date.now(),
+      date,
+      bill,
+      category,
+      pages,
+      qty,
+      sheets,
+      reams:sheets/500
+    });
+
+    saveData();
+
+    clearProduction();
+    renderAll();
+
+    hideLoader();
+
+    flash(
+      "productionMsg",
+      "Production record added successfully."
+    );
+
+  },250);
+
+}
+
+function clearProduction(){
+
+  document.getElementById("prodBill").value="";
+  document.getElementById("prodCategory").value="";
+  document.getElementById("prodPages").value=96;
+  document.getElementById("prodQty").value="";
+  document.getElementById("prodDate").value=today();
+
+  updateProductionInfo();
+
+}
+
+function renderProduction(){
+
+  const rows=currentProfile().production;
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Bill No.</th>
+        <th>Category</th>
+        <th>Pages</th>
+        <th>Quantity</th>
+        <th>Sheets</th>
+        <th>Reams</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  rows.slice().reverse().forEach(r=>{
+
+    html+=
+      `<tr>
+        <td>${escapeHtml(r.date)}</td>
+        <td>${escapeHtml(r.bill)}</td>
+        <td>${escapeHtml(categoryName(r.category))}</td>
+        <td>${r.pages}</td>
+        <td>${r.qty}</td>
+        <td>${money(r.sheets)}</td>
+        <td>${money(r.reams)}</td>
+        <td>
+          <button class="danger"
+            onclick="deleteProduction(${r.id})">
+            Delete
+          </button>
+        </td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  document.getElementById("productionTable").innerHTML=
+    html;
+
+}
+
+function deleteProduction(id){
+
+  if(!confirm("Delete this production record?"))
+    return;
+
+  currentProfile().production=
+    currentProfile().production.filter(
+      x=>x.id!==id
+    );
+
+  saveData();
+  renderAll();
+
+}
+
+
+/* =========================================================
+   RECORDS
+========================================================= */
+
+function getFilteredRecordRows(){
+
+  const type=document.getElementById("recordType").value;
+  const category=document.getElementById("recordCategory").value;
+  const from=document.getElementById("recordFrom").value;
+  const to=document.getElementById("recordTo").value;
+
+  let rows=[];
+
+  const add=(arr,kind)=>{
+
+    arr.forEach(r=>{
+
+      if(category &&
+         String(r.category)!==String(category))
+        return;
+
+      if(from && r.date<from)
+        return;
+
+      if(to && r.date>to)
+        return;
+
+      rows.push({
+        date:r.date,
+        bill:r.bill,
+        kind,
+        category:r.category,
+        qty:r.qty||r.reams||0,
+        reams:
+          kind==="Paper Purchase"
+            ?Number(r.reams||0)
+            :kind==="Production"
+              ?Number(r.reams||0)
+              :""
+      });
+
+    });
+
+  };
+
+  if(type==="all"||type==="paper")
+    add(currentProfile().paper,"Paper Purchase");
+
+  if(type==="all"||type==="covers")
+    add(currentProfile().covers,"Cover Purchase");
+
+  if(type==="all"||type==="production")
+    add(currentProfile().production,"Production");
+
+  rows.sort((a,b)=>
+    String(b.date).localeCompare(String(a.date))
+  );
+
+  return rows;
+
+}
+
+function renderRecords(){
+
+  const rows=getFilteredRecordRows();
+
+  if(!rows.length){
+
+    document.getElementById("recordsTable").innerHTML=
+      `<div class="notice">
+        No records found for the selected filters.
+      </div>`;
+
+    return;
+
+  }
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Bill No.</th>
+        <th>Type</th>
+        <th>Category</th>
+        <th>Quantity</th>
+        <th>Reams</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  rows.forEach(r=>{
+
+    html+=
+      `<tr>
+        <td>${escapeHtml(r.date)}</td>
+        <td>${escapeHtml(r.bill)}</td>
+        <td>${r.kind}</td>
+        <td>${escapeHtml(categoryName(r.category))}</td>
+        <td>${r.qty}</td>
+        <td>${r.reams!==""?money(r.reams):"-"}</td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  document.getElementById("recordsTable").innerHTML=
+    html;
+
+}
+
+function clearRecordFilter(){
+
+  document.getElementById("recordType").value="all";
+  document.getElementById("recordCategory").value="";
+  document.getElementById("recordFrom").value="";
+  document.getElementById("recordTo").value="";
+
+  renderRecords();
+
+}
+
+function exportRecords(){
+
+  const rows=getFilteredRecordRows();
+
+  if(!rows.length)
+    return flash(
+      "recordsExportMsg",
+      "No records match the current filters.",
+      false
+    );
+
+  if(typeof XLSX==="undefined")
+    return flash(
+      "recordsExportMsg",
+      "Export library not loaded.",
+      false
+    );
+
+  const data=rows.map(r=>({
+    "Date":r.date,
+    "Bill No.":r.bill,
+    "Type":r.kind,
+    "Category":categoryName(r.category),
+    "Quantity":r.qty,
+    "Reams":r.reams!==""?Number(money(r.reams)):""
+  }));
+
+  const ws=XLSX.utils.json_to_sheet(data);
+  const wb=XLSX.utils.book_new();
+
+  XLSX.utils.book_append_sheet(wb,ws,"Records");
+
+  const safeProfile=
+    state.activeProfile
+      .replace(/[^a-z0-9]+/gi,"_")
+      .replace(/^_+|_+$/g,"");
+
+  XLSX.writeFile(
+    wb,
+    `${safeProfile||"records"}_records_${today()}.xlsx`
+  );
+
+  flash(
+    "recordsExportMsg",
+    "Records exported successfully."
+  );
+
+}
+
+function exportRecordsPDF(){
+
+  const rows=getFilteredRecordRows();
+
+  if(!rows.length)
+    return flash(
+      "recordsExportMsg",
+      "No records match the current filters.",
+      false
+    );
+
+  if(
+    typeof jspdf==="undefined" ||
+    typeof jspdf.jsPDF==="undefined"
+  )
+    return flash(
+      "recordsExportMsg",
+      "PDF export library not loaded.",
+      false
+    );
+
+  const doc=
+    new jspdf.jsPDF({
+      orientation:"landscape"
+    });
+
+  doc.setFontSize(14);
+
+  doc.text(
+    `${state.activeProfile} - Records`,
+    14,
+    15
+  );
+
+  doc.setFontSize(10);
+
+  doc.text(
+    `Generated on ${today()}`,
+    14,
+    21
+  );
+
+  const body=
+    rows.map(r=>[
+      r.date,
+      r.bill||"-",
+      r.kind,
+      categoryName(r.category),
+      String(r.qty),
+      r.reams!==""?money(r.reams):"-"
+    ]);
+
+  doc.autoTable({
+    startY:27,
+    head:[[
+      "Date",
+      "Bill No.",
+      "Type",
+      "Category",
+      "Quantity",
+      "Reams"
+    ]],
+    body,
+    styles:{fontSize:9},
+    headStyles:{fillColor:[23,105,224]}
+  });
+
+  const safeProfile=
+    state.activeProfile
+      .replace(/[^a-z0-9]+/gi,"_")
+      .replace(/^_+|_+$/g,"");
+
+  doc.save(
+    `${safeProfile||"records"}_records_${today()}.pdf`
+  );
+
+  flash(
+    "recordsExportMsg",
+    "PDF exported successfully."
+  );
+
+}
+
+
+/* =========================================================
+   PROFILES
+========================================================= */
+
+function createProfile(){
+
+  const input=document.getElementById("newProfileName");
+
+  const name=input.value.trim();
+
+  if(!name)
+    return flash(
+      "profileMsg",
+      "Enter a profile name.",
+      false
+    );
+
+  if(state.profiles[name])
+    return flash(
+      "profileMsg",
+      "This profile already exists.",
+      false
+    );
+
+  showLoader("Creating profile...");
+
+  setTimeout(()=>{
+
+    state.profiles[name]=newProfile();
+
+    state.activeProfile=name;
+
+    saveData();
+
+    input.value="";
+
+    renderAll();
+
+    hideLoader();
+
+    flash(
+      "profileMsg",
+      "Profile created successfully."
+    );
+
+  },250);
+
+}
+
+function switchProfile(name){
+
+  if(!state.profiles[name])return;
+
+  showLoader("Switching profile...");
+
+  setTimeout(()=>{
+
+    state.activeProfile=name;
+
+    saveData();
+
+    renderAll();
+
+    hideLoader();
+
+  },180);
+
+}
+
+function renameProfile(name){
+
+  const newName=prompt(
+    "Enter new profile name:",
+    name
+  );
+
+  if(!newName)return;
+
+  const clean=newName.trim();
+
+  if(!clean || clean===name)return;
+
+  if(state.profiles[clean]){
+
+    alert("A profile with this name already exists.");
+
+    return;
+
+  }
+
+  state.profiles[clean]=
+    state.profiles[name];
+
+  delete state.profiles[name];
+
+  if(state.activeProfile===name)
+    state.activeProfile=clean;
+
+  saveData();
+  renderAll();
+
+}
+
+function deleteProfile(name){
+
+  const names=Object.keys(state.profiles);
+
+  if(names.length<=1){
+
+    alert(
+      "At least one profile must remain."
+    );
+
+    return;
+
+  }
+
+  if(!confirm(
+    `Delete "${name}" and all its records?`
+  ))return;
+
+  delete state.profiles[name];
+
+  if(state.activeProfile===name)
+    state.activeProfile=
+      Object.keys(state.profiles)[0];
+
+  saveData();
+  renderAll();
+
+}
+
+function renderProfiles(){
+
+  const list=
+    document.getElementById("profileList");
+
+  const names=
+    Object.keys(state.profiles);
+
+  list.innerHTML="";
+
+  names.forEach(name=>{
+
+    const p=state.profiles[name];
+
+    const div=
+      document.createElement("div");
+
+    div.className=
+      "profile-card"+
+      (
+        name===state.activeProfile
+          ?" current"
+          :""
+      );
+
+    div.innerHTML=
+      `<div style="display:flex;justify-content:space-between;gap:10px">
+        <div>
+          <b>${escapeHtml(name)}</b>
+          ${name===state.activeProfile
+            ?'<span class="badge">CURRENT</span>'
+            :''}
+          <div class="muted" style="margin-top:7px">
+            Paper records: ${p.paper.length}<br>
+            Cover records: ${p.covers.length}<br>
+            Production records: ${p.production.length}
+          </div>
+        </div>
+      </div>`;
+
+    const buttons=
+      document.createElement("div");
+
+    buttons.className="btns";
+
+    if(name!==state.activeProfile){
+
+      const open=
+        document.createElement("button");
+
+      open.className="primary";
+      open.textContent="Open";
+
+      open.onclick=
+        ()=>switchProfile(name);
+
+      buttons.appendChild(open);
+
+    }
+
+    const share=
+      document.createElement("button");
+
+    share.className="secondary";
+    share.textContent="Share (Download)";
+
+    share.onclick=
+      ()=>shareProfile(name);
+
+    buttons.appendChild(share);
+
+    const copyText=
+      document.createElement("button");
+
+    copyText.className="secondary";
+    copyText.textContent="Copy Text";
+
+    copyText.onclick=
+      ()=>copyProfileRecord(name);
+
+    buttons.appendChild(copyText);
+
+    const rename=
+      document.createElement("button");
+
+    rename.className="secondary";
+    rename.textContent="Rename";
+
+    rename.onclick=
+      ()=>renameProfile(name);
+
+    buttons.appendChild(rename);
+
+    const del=
+      document.createElement("button");
+
+    del.className="danger";
+    del.textContent="Delete";
+
+    del.onclick=
+      ()=>deleteProfile(name);
+
+    buttons.appendChild(del);
+
+    div.appendChild(buttons);
+
+    list.appendChild(div);
+
+  });
+
+}
+
+const SHARED_RECORD_TYPE=
+  "notebook_paper_manager_shared_profile";
+
+function buildSharedPayload(name){
+
+  const profileData=
+    state.profiles[name];
+
+  if(!profileData)return null;
+
+  return {
+    type:SHARED_RECORD_TYPE,
+    version:1,
+    profileName:name,
+    exportedAt:today(),
+    data:profileData
+  };
+
+}
+
+function shareProfile(name){
+
+  const payload=
+    buildSharedPayload(name);
+
+  if(!payload)return;
+
+  const blob=
+    new Blob(
+      [
+        JSON.stringify(
+          payload,
+          null,
+          2
+        )
+      ],
+      {
+        type:"application/json"
+      }
+    );
+
+  const url=
+    URL.createObjectURL(blob);
+
+  const a=
+    document.createElement("a");
+
+  a.href=url;
+
+  const safeName=
+    name
+      .replace(/[^a-z0-9]+/gi,"_")
+      .replace(/^_+|_+$/g,"");
+
+  a.download=
+    `${safeName||"profile"}_shared_record.json`;
+
+  document.body.appendChild(a);
+
+  a.click();
+
+  document.body.removeChild(a);
+
+  setTimeout(
+    ()=>URL.revokeObjectURL(url),
+    3000
+  );
+
+}
+
+async function copyToClipboard(text){
+
+  try{
+
+    await navigator.clipboard.writeText(text);
+
+    return true;
+
+  }catch(e){
+
+    try{
+
+      const ta=
+        document.createElement("textarea");
+
+      ta.value=text;
+
+      ta.style.position="fixed";
+      ta.style.left="-9999px";
+
+      document.body.appendChild(ta);
+
+      ta.focus();
+      ta.select();
+
+      const ok=
+        document.execCommand("copy");
+
+      document.body.removeChild(ta);
+
+      return ok;
+
+    }catch(e2){
+
+      return false;
+
+    }
+
+  }
+
+}
+
+async function copyProfileRecord(name){
+
+  const payload=
+    buildSharedPayload(name);
+
+  if(!payload)return;
+
+  const ok=
+    await copyToClipboard(
+      JSON.stringify(payload)
+    );
+
+  if(ok){
+
+    flash(
+      "profileMsg",
+      "Record copied! Paste it into a message and send it to the other person."
+    );
+
+  }else{
+
+    flash(
+      "profileMsg",
+      "Could not copy automatically. Try the Share (Download) button instead.",
+      false
+    );
+
+  }
+
+}
+
+function applySharedPayload(parsed){
+
+  if(
+    !parsed ||
+    parsed.type!==SHARED_RECORD_TYPE ||
+    !parsed.data ||
+    !parsed.profileName
+  ){
+
+    return {
+      ok:false,
+      message:"This is not a valid shared record."
+    };
+
+  }
+
+  let name=
+    parsed.profileName;
+
+  if(state.profiles[name]){
+
+    let suffix=2;
+
+    while(
+      state.profiles[
+        `${parsed.profileName} (${suffix})`
+      ]
+    )suffix++;
+
+    name=
+      `${parsed.profileName} (${suffix})`;
+
+  }
+
+  state.profiles[name]=
+    parsed.data;
+
+  if(!state.profiles[name].paper)
+    state.profiles[name].paper=[];
+
+  if(!state.profiles[name].covers)
+    state.profiles[name].covers=[];
+
+  if(!state.profiles[name].production)
+    state.profiles[name].production=[];
+
+  if(!state.profiles[name].customItems)
+    state.profiles[name].customItems=[];
+
+  state.activeProfile=name;
+
+  saveData();
+
+  renderAll();
+
+  return {
+    ok:true,
+    message:`Record imported as "${name}" and opened.`
+  };
+
+}
+
+function importSharedProfile(){
+
+  const input=
+    document.getElementById(
+      "sharedRecordFile"
+    );
+
+  const file=
+    input.files[0];
+
+  if(!file)return;
+
+  const reader=
+    new FileReader();
+
+  reader.onload=function(){
+
+    try{
+
+      const parsed=
+        JSON.parse(
+          reader.result
+        );
+
+      const result=
+        applySharedPayload(parsed);
+
+      flash(
+        "shareMsg",
+        result.message,
+        result.ok
+      );
+
+    }catch(e){
+
+      console.error(e);
+
+      flash(
+        "shareMsg",
+        "Could not read this shared record file.",
+        false
+      );
+
+    }
+
+    input.value="";
+
+  };
+
+  reader.readAsText(file);
+
+}
+
+function importSharedProfileFromText(){
+
+  const box=
+    document.getElementById(
+      "sharedRecordText"
+    );
+
+  const text=
+    box.value.trim();
+
+  if(!text)
+    return flash(
+      "shareMsg",
+      "Paste the shared record text first.",
+      false
+    );
+
+  try{
+
+    const parsed=
+      JSON.parse(text);
+
+    const result=
+      applySharedPayload(parsed);
+
+    flash(
+      "shareMsg",
+      result.message,
+      result.ok
+    );
+
+    if(result.ok)
+      box.value="";
+
+  }catch(e){
+
+    console.error(e);
+
+    flash(
+      "shareMsg",
+      "Could not read this text. Make sure you pasted the whole record.",
+      false
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   CUSTOM ITEMS
+========================================================= */
+
+function addCustomItem(){
+
+  const name=
+    document.getElementById("itemName").value.trim();
+
+  const brand=
+    document.getElementById("itemBrand").value.trim();
+
+  const size=
+    document.getElementById("itemSize").value.trim();
+
+  const sheets=
+    Number(
+      document.getElementById("itemSheets").value
+    );
+
+  if(!name)
+    return flash(
+      "itemMsg",
+      "Enter item name.",
+      false
+    );
+
+  if(!(sheets>0))
+    return flash(
+      "itemMsg",
+      "Enter sheets per notebook.",
+      false
+    );
+
+  if(
+    getItems().some(
+      x=>x.name.toLowerCase()===
+         name.toLowerCase()
+    )
+  ){
+
+    return flash(
+      "itemMsg",
+      "This item already exists.",
+      false
+    );
+
+  }
+
+  showLoader("Adding item...");
+
+  setTimeout(()=>{
+
+    currentProfile().customItems.push({
+      id:"custom_"+Date.now(),
+      name,
+      brand:brand||"Custom",
+      size:size||"Custom",
+      sheetsPerBook:sheets
+    });
+
+    saveData();
+
+    clearItemForm();
+
+    renderAll();
+
+    hideLoader();
+
+    flash(
+      "itemMsg",
+      "Item added successfully."
+    );
+
+  },250);
+
+}
+
+function clearItemForm(){
+
+  document.getElementById("itemName").value="";
+  document.getElementById("itemBrand").value="";
+  document.getElementById("itemSize").value="";
+  document.getElementById("itemSheets").value="";
+
+}
+
+function deleteCustomItem(id){
+
+  if(!confirm(
+    "Delete this custom item?"
+  ))return;
+
+  currentProfile().customItems=
+    currentProfile().customItems.filter(
+      x=>x.id!==id
+    );
+
+  saveData();
+
+  renderAll();
+
+}
+
+function renderItems(){
+
+  const table=
+    document.getElementById("itemsTable");
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Variety</th>
+        <th>Size</th>
+        <th>Sheets / Notebook</th>
+        <th>Type</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  getItems().forEach(item=>{
+
+    html+=
+      `<tr>
+        <td><b>${escapeHtml(item.name)}</b></td>
+        <td>${escapeHtml(item.brand)}</td>
+        <td>${escapeHtml(item.size)}</td>
+        <td>${item.sheetsPerBook}</td>
+        <td>${item.custom?"Custom":"Built-in"}</td>
+        <td>
+          ${
+            item.custom
+              ?`<button class="danger"
+                  onclick="deleteCustomItem('${item.id}')">
+                  Remove
+                </button>`
+              :""
+          }
+        </td>
+      </tr>`;
+
+  });
+
+  html+=
+    `</tbody></table></div>`;
+
+  table.innerHTML=html;
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function renderDashboard(){
+
+  const p=currentProfile();
+
+  const totalPaper=
+    p.paper.reduce(
+      (s,r)=>s+Number(r.reams||0),
+      0
+    );
+
+  const totalBooks=
+    p.production.reduce(
+      (s,r)=>s+Number(r.qty||0),
+      0
+    );
+
+  const totalUsed=
+    p.production.reduce(
+      (s,r)=>s+Number(r.reams||0),
+      0
+    );
+
+  const totalCovers=
+    p.covers.reduce(
+      (s,r)=>s+Number(r.qty||0),
+      0
+    );
+
+  document.getElementById(
+    "dashboardProfile"
+  ).textContent=
+    state.activeProfile;
+
+  document.getElementById(
+    "sideProfile"
+  ).textContent=
+    state.activeProfile;
+
+  document.getElementById(
+    "statPaper"
+  ).textContent=
+    money(totalPaper);
+
+  document.getElementById(
+    "statBooks"
+  ).textContent=
+    totalBooks;
+
+  document.getElementById(
+    "statCovers"
+  ).textContent=
+    totalCovers;
+
+  document.getElementById(
+    "statRemaining"
+  ).textContent=
+    money(totalPaper-totalUsed);
+
+  const map={};
+
+  getItems().forEach(
+    item=>map[item.id]={
+      purchased:0,
+      used:0
+    }
+  );
+
+  p.paper.forEach(r=>{
+
+    if(!map[r.category])
+      map[r.category]={
+        purchased:0,
+        used:0
+      };
+
+    map[r.category].purchased+=
+      Number(r.reams)||0;
+
+  });
+
+  p.production.forEach(r=>{
+
+    if(!map[r.category])
+      map[r.category]={
+        purchased:0,
+        used:0
+      };
+
+    map[r.category].used+=
+      Number(r.reams)||0;
+
+  });
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Purchased</th>
+        <th>Used</th>
+        <th>Remaining</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  getItems().forEach(item=>{
+
+    const x=map[item.id]||{
+      purchased:0,
+      used:0
+    };
+
+    html+=
+      `<tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${money(x.purchased)}</td>
+        <td>${money(x.used)}</td>
+        <td><b>${money(x.purchased-x.used)}</b></td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  document.getElementById(
+    "dashboardStock"
+  ).innerHTML=html;
+
+}
+
+
+/* =========================================================
+   IMPORT
+========================================================= */
+
+function clearImport(){
+
+  document.getElementById("pdfFile").value="";
+  document.getElementById("importFrom").value="";
+  document.getElementById("importTo").value="";
+  document.getElementById("importBillFrom").value="";
+  document.getElementById("importBillTo").value="";
+  document.getElementById("importCategory").value="";
+  document.getElementById("importPreview").innerHTML=
+    "No PDF selected.";
+
+  document.getElementById(
+    "importConfirmBtn"
+  ).style.display="none";
+
+  importRows=[];
+
+}
+
+async function previewImport(){
+
+  const file=
+    document.getElementById("pdfFile").files[0];
+
+  if(!file)
+    return flash(
+      "importMsg",
+      "Select a PDF statement.",
+      false
+    );
+
+  showLoader("Reading PDF...");
+
+  try{
+
+    if(typeof pdfjsLib==="undefined")
+      throw new Error(
+        "PDF library not loaded."
+      );
+
+    const buffer=
+      await file.arrayBuffer();
+
+    const lines=
+      await extractPdfLines(buffer);
+
+    importRows=
+      convertPdfLines(lines);
+
+    const from=
+      document.getElementById("importFrom").value;
+
+    const to=
+      document.getElementById("importTo").value;
+
+    const billFrom=
+      Number(
+        document.getElementById("importBillFrom").value
+      );
+
+    const billTo=
+      Number(
+        document.getElementById("importBillTo").value
+      );
+
+    const category=
+      document.getElementById("importCategory").value;
+
+    importRows=
+      importRows.filter(r=>{
+
+        if(from && r.date<from)
+          return false;
+
+        if(to && r.date>to)
+          return false;
+
+        const b=Number(r.bill)||0;
+
+        if(
+          billFrom &&
+          b<billFrom
+        )return false;
+
+        if(
+          billTo &&
+          b>billTo
+        )return false;
+
+        if(
+          category &&
+          r.category!==category
+        )return false;
+
+        return true;
+
+      });
+
+    if(!importRows.length){
+
+      hideLoader();
+
+      return flash(
+        "importMsg",
+        "No recognizable records found in this PDF.",
+        false
+      );
+
+    }
+
+    renderImportPreview();
+
+    hideLoader();
+
+  }catch(e){
+
+    console.error(e);
+
+    hideLoader();
+
+    flash(
+      "importMsg",
+      "Could not read this PDF.",
+      false
+    );
+
+  }
+
+}
+
+/*
+  Reconstructs line-based text from a PDF using pdf.js by
+  grouping text items that share the same vertical position,
+  then sorting them left-to-right on each line.
+*/
+async function extractPdfLines(buffer){
+
+  const pdf=
+    await pdfjsLib.getDocument(
+      {data:buffer}
+    ).promise;
+
+  const lines=[];
+
+  for(let p=1;p<=pdf.numPages;p++){
+
+    const page=
+      await pdf.getPage(p);
+
+    const content=
+      await page.getTextContent();
+
+    const rowMap={};
+
+    content.items.forEach(item=>{
+
+      if(!item.str || !item.str.trim())
+        return;
+
+      const y=
+        Math.round(item.transform[5]);
+
+      if(!rowMap[y])
+        rowMap[y]=[];
+
+      rowMap[y].push({
+        x:item.transform[4],
+        text:item.str
+      });
+
+    });
+
+    const ys=
+      Object.keys(rowMap)
+        .map(Number)
+        .sort((a,b)=>b-a);
+
+    ys.forEach(y=>{
+
+      const line=
+        rowMap[y]
+          .sort((a,b)=>a.x-b.x)
+          .map(i=>i.text)
+          .join(" ")
+          .replace(/\s+/g," ")
+          .trim();
+
+      if(line)
+        lines.push(line);
+
+    });
+
+  }
+
+  return lines;
+
+}
+
+/*
+  Parses each line of the PDF statement using the same
+  category matching rules as before (findImportedCategory),
+  plus regex extraction for date, bill no., pages and qty.
+*/
+function convertPdfLines(lines){
+
+  const result=[];
+
+  lines.forEach(line=>{
+
+    const lower=
+      line.toLowerCase();
+
+    const category=
+      findImportedCategory(lower);
+
+    if(!category)
+      return;
+
+    let date=today();
+
+    const dateMatch=
+      line.match(
+        /\b(\d{4}-\d{1,2}-\d{1,2})\b|\b(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})\b/
+      );
+
+    if(dateMatch){
+
+      const parsed=
+        parseFlexibleDate(dateMatch[0]);
+
+      if(parsed)
+        date=parsed;
+
+    }
+
+    let bill="";
+
+    const billMatch=
+      line.match(
+        /bill\s*(?:no\.?|number|#)?\s*[:\-]?\s*(\d+)/i
+      );
+
+    if(billMatch)
+      bill=billMatch[1];
+
+    let pages=96;
+
+    const pageMatch=
+      line.match(/(\d+)\s*pages?/i);
+
+    if(pageMatch)
+      pages=Number(pageMatch[1])||96;
+
+    let qty=0;
+
+    const qtyMatch=
+      line.match(
+        /(?:qty|quantity)\.?\s*[:\-]?\s*(\d+)/i
+      );
+
+    if(qtyMatch){
+
+      qty=Number(qtyMatch[1]);
+
+    }else{
+
+      const numbers=
+        line.match(/\d+/g);
+
+      if(numbers && numbers.length)
+        qty=Number(numbers[numbers.length-1]);
+
+    }
+
+    if(!(qty>0))
+      return;
+
+    result.push({
+      date,
+      bill,
+      category,
+      pages,
+      qty
+    });
+
+  });
+
+  return result;
+
+}
+
+function parseFlexibleDate(raw){
+
+  const str=raw.trim();
+
+  let m=
+    str.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+
+  if(m){
+
+    return `${m[1]}-${m[2].padStart(2,"0")}-${m[3].padStart(2,"0")}`;
+
+  }
+
+  m=
+    str.match(
+      /^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/
+    );
+
+  if(m){
+
+    let [,d,mo,y]=m;
+
+    if(y.length===2)
+      y="20"+y;
+
+    return `${y}-${mo.padStart(2,"0")}-${d.padStart(2,"0")}`;
+
+  }
+
+  return null;
+
+}
+
+function findImportedCategory(text){
+
+  if(
+    text.includes("real") &&
+    text.includes("long")
+  )
+    return "premium_a4";
+
+  if(
+    text.includes("007") &&
+    text.includes("long")
+  )
+    return "writon_a4";
+
+  if(
+    text.includes("real") &&
+    !text.includes("long")
+  )
+    return "premium_convent";
+
+  if(
+    text.includes("007") &&
+    !text.includes("long")
+  )
+    return "writon_convent";
+
+  const item=
+    getItems().find(i=>
+      text.includes(
+        i.name.toLowerCase()
+      )
+    );
+
+  return item?item.id:null;
+
+}
+
+function renderImportPreview(){
+
+  const box=
+    document.getElementById(
+      "importPreview"
+    );
+
+  if(!importRows.length){
+
+    box.innerHTML=
+      `<div class="notice">
+        No matching records found.
+      </div>`;
+
+    document.getElementById(
+      "importConfirmBtn"
+    ).style.display="none";
+
+    return;
+
+  }
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Bill</th>
+        <th>Category</th>
+        <th>Pages</th>
+        <th>Qty</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  importRows.forEach(r=>{
+
+    html+=
+      `<tr>
+        <td>${escapeHtml(r.date)}</td>
+        <td>${escapeHtml(r.bill)}</td>
+        <td>${escapeHtml(categoryName(r.category))}</td>
+        <td>${r.pages}</td>
+        <td>${r.qty}</td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  box.innerHTML=html;
+
+  document.getElementById(
+    "importConfirmBtn"
+  ).style.display="inline-block";
+
+}
+
+function commitImport(){
+
+  if(!importRows.length)
+    return;
+
+  showLoader("Importing records...");
+
+  setTimeout(()=>{
+
+    importRows.forEach(r=>{
+
+      const sheets=
+        calculateSheets(
+          r.category,
+          r.pages,
+          r.qty
+        );
+
+      currentProfile().production.push({
+
+        id:
+          Date.now()+
+          Math.random(),
+
+        date:r.date,
+
+        bill:r.bill,
+
+        category:r.category,
+
+        pages:r.pages,
+
+        qty:r.qty,
+
+        sheets,
+
+        reams:sheets/500
+
+      });
+
+    });
+
+    saveData();
+
+    importRows=[];
+
+    document.getElementById(
+      "importConfirmBtn"
+    ).style.display="none";
+
+    document.getElementById(
+      "importPreview"
+    ).innerHTML=
+      `<div class="notice">
+        Records imported successfully.
+      </div>`;
+
+    renderAll();
+
+    hideLoader();
+
+  },300);
+
+}
+
+
+/* =========================================================
+   BACKUP
+========================================================= */
+
+function downloadBackup(){
+
+  const blob=
+    new Blob(
+      [
+        JSON.stringify(
+          state,
+          null,
+          2
+        )
+      ],
+      {
+        type:"application/json"
+      }
+    );
+
+  const url=
+    URL.createObjectURL(blob);
+
+  const a=
+    document.createElement("a");
+
+  a.href=url;
+
+  a.download=
+    "notebook-paper-manager-backup.json";
+
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+}
+
+function restoreBackup(){
+
+  const file=
+    document.getElementById(
+      "restoreFile"
+    ).files[0];
+
+  if(!file)return;
+
+  const reader=
+    new FileReader();
+
+  reader.onload=function(){
+
+    try{
+
+      const parsed=
+        JSON.parse(
+          reader.result
+        );
+
+      if(
+        !parsed.profiles ||
+        !parsed.activeProfile
+      ){
+
+        alert(
+          "Invalid backup file."
+        );
+
+        return;
+
+      }
+
+      if(!confirm(
+        "Restore this backup? Current records will be replaced."
+      ))return;
+
+      state=parsed;
+
+      saveData();
+
+      renderAll();
+
+      flash(
+        "backupMsg",
+        "Backup restored successfully."
+      );
+
+    }catch(e){
+
+      alert(
+        "Could not restore backup."
+      );
+
+    }
+
+  };
+
+  reader.readAsText(file);
+
+}
+
+
+/* =========================================================
+   REFRESH EVERYTHING
+========================================================= */
+
+function refreshPage(page){
+
+  populateAllCategories();
+
+  if(page==="dashboard")
+    renderDashboard();
+
+  if(page==="paper")
+    renderPaperStock();
+
+  if(page==="covers")
+    renderCoverStock();
+
+  if(page==="production")
+    renderProduction();
+
+  if(page==="records")
+    renderRecords();
+
+  if(page==="profiles")
+    renderProfiles();
+
+  if(page==="items")
+    renderItems();
+
+}
+
+function renderAll(){
+
+  normalizeProfile();
+
+  populateAllCategories();
+
+  renderDashboard();
+
+  renderPaperStock();
+
+  renderCoverStock();
+
+  renderProduction();
+
+  renderRecords();
+
+  renderProfiles();
+
+  renderItems();
+
+  setDefaultDates();
+
+  updateProductionInfo();
+
+}
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+loadData();
+
+populateAllCategories();
+
+setDefaultDates();
+
+renderAll();
+
+showPage("dashboard");
+
+</script>
+
+
+<!-- SHEETJS FOR EXCEL EXPORT -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+<!-- JSPDF FOR PDF EXPORT -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<!-- PDF.JS FOR PDF STATEMENT IMPORT -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  if(typeof pdfjsLib!=="undefined"){
+    pdfjsLib.GlobalWorkerOptions.workerSrc=
+      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  }
+</script>
+
+<!-- PWA SERVICE WORKER REGISTRATION -->
+<script>
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", function(){
+      navigator.serviceWorker
+        .register("sw.js")
+        .catch(function(err){
+          console.error("Service worker registration failed:", err);
+        });
+    });
+  }
+</script>
+
+</body>
+</html>
