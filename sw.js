@@ -1,4 +1,4 @@
-const CACHE_NAME = "notebook-paper-manager-v1";
+const CACHE_NAME = "notebook-paper-manager-v4";
 
 const CORE_ASSETS = [
   "./index.html",
@@ -34,6 +34,22 @@ self.addEventListener("fetch", (event) => {
 
       return fetch(event.request)
         .then((response) => {
+          // Cache successful same-origin GET requests for offline use
+          if (
+            event.request.method === "GET" &&
+            response &&
+            response.status === 200 &&
+            response.type === "basic"
+          ) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return response;
+        })
+        .catch(() => cached);
+    })
+  );
+});
           // Cache successful same-origin GET requests for offline use
           if (
             event.request.method === "GET" &&
