@@ -177,6 +177,7 @@ button.danger{
 }
 .success{color:var(--success)}
 .error{color:var(--danger)}
+.warning{color:#a15c00}
 .notice{
   padding:12px;
   background:#f4f8ff;
@@ -402,6 +403,21 @@ tr:hover td{background:#fbfdff}
     <div id="dashboardStock"></div>
   </div>
 
+  <div class="card">
+    <h3>Cover Stock by Category</h3>
+    <div id="dashboardCoverStock"></div>
+  </div>
+
+  <div class="card">
+    <h3>Production by Category</h3>
+    <div id="dashboardProductionStock"></div>
+  </div>
+
+  <div class="card">
+    <h3>📅 Monthly Summary</h3>
+    <div id="dashboardMonthly"></div>
+  </div>
+
 </section>
 
 
@@ -440,11 +456,17 @@ tr:hover td{background:#fbfdff}
         <label>Reams Purchased</label>
         <input type="number" id="paperReams" min="0" step="0.01" placeholder="e.g. 6">
       </div>
+
+      <div>
+        <label>Comment (optional)</label>
+        <input id="paperComment" placeholder="Any note about this entry">
+      </div>
     </div>
 
     <div class="btns">
-      <button class="primary" onclick="addPaper()">Add Paper</button>
+      <button class="primary" id="paperSubmitBtn" onclick="addPaper()">Add Paper</button>
       <button class="secondary" onclick="clearPaper()">Clear</button>
+      <button class="secondary" id="paperCancelEditBtn" style="display:none" onclick="cancelPaperEdit()">Cancel Edit</button>
     </div>
 
     <div id="paperMsg"></div>
@@ -453,6 +475,37 @@ tr:hover td{background:#fbfdff}
   <div class="card">
     <h3>Current Paper Stock</h3>
     <div id="paperStockTable"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary style="cursor:pointer;font-weight:700;font-size:14px">
+        📜 Paper Purchase History (click to expand)
+      </summary>
+
+      <div class="grid-2 grid" style="margin-top:14px">
+        <div>
+          <label>Delete All Records of a Category</label>
+          <select id="paperBulkCategory">
+            <option value="">Select category</option>
+          </select>
+        </div>
+
+        <div style="display:flex;align-items:end">
+          <button class="danger" onclick="clearPaperByCategory()">
+            🗑 Delete All of Selected Category
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>Search</label>
+        <input id="paperSearchBox" placeholder="Search by bill number, category, or comment..."
+          oninput="renderPaperHistory()">
+      </div>
+
+      <div id="paperHistoryTable" style="margin-top:14px"></div>
+    </details>
   </div>
 
 </section>
@@ -493,11 +546,17 @@ tr:hover td{background:#fbfdff}
         <label>Cover Quantity</label>
         <input type="number" id="coverQty" min="0" step="1" placeholder="Quantity">
       </div>
+
+      <div>
+        <label>Comment (optional)</label>
+        <input id="coverComment" placeholder="Any note about this entry">
+      </div>
     </div>
 
     <div class="btns">
-      <button class="primary" onclick="addCovers()">Add Covers</button>
+      <button class="primary" id="coverSubmitBtn" onclick="addCovers()">Add Covers</button>
       <button class="secondary" onclick="clearCovers()">Clear</button>
+      <button class="secondary" id="coverCancelEditBtn" style="display:none" onclick="cancelCoverEdit()">Cancel Edit</button>
     </div>
 
     <div id="coverMsg"></div>
@@ -506,6 +565,37 @@ tr:hover td{background:#fbfdff}
   <div class="card">
     <h3>Cover Stock</h3>
     <div id="coverStockTable"></div>
+  </div>
+
+  <div class="card">
+    <details>
+      <summary style="cursor:pointer;font-weight:700;font-size:14px">
+        📜 Cover Purchase History (click to expand)
+      </summary>
+
+      <div class="grid-2 grid" style="margin-top:14px">
+        <div>
+          <label>Delete All Records of a Category</label>
+          <select id="coverBulkCategory">
+            <option value="">Select category</option>
+          </select>
+        </div>
+
+        <div style="display:flex;align-items:end">
+          <button class="danger" onclick="clearCoverByCategory()">
+            🗑 Delete All of Selected Category
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>Search</label>
+        <input id="coverSearchBox" placeholder="Search by bill number, category, or comment..."
+          oninput="renderCoverHistory()">
+      </div>
+
+      <div id="coverHistoryTable" style="margin-top:14px"></div>
+    </details>
   </div>
 
 </section>
@@ -551,6 +641,11 @@ tr:hover td{background:#fbfdff}
         <label>Notebook Quantity</label>
         <input type="number" id="prodQty" min="1" step="1" placeholder="Quantity">
       </div>
+
+      <div>
+        <label>Comment (optional)</label>
+        <input id="prodComment" placeholder="Any note about this entry">
+      </div>
     </div>
 
     <div id="productionInfo" class="notice" style="margin-top:15px">
@@ -558,8 +653,9 @@ tr:hover td{background:#fbfdff}
     </div>
 
     <div class="btns">
-      <button class="primary" onclick="addProduction()">Add Production</button>
+      <button class="primary" id="prodSubmitBtn" onclick="addProduction()">Add Production</button>
       <button class="secondary" onclick="clearProduction()">Clear</button>
+      <button class="secondary" id="prodCancelEditBtn" style="display:none" onclick="cancelProductionEdit()">Cancel Edit</button>
     </div>
 
     <div id="productionMsg"></div>
@@ -567,6 +663,28 @@ tr:hover td{background:#fbfdff}
 
   <div class="card">
     <h3>Production Records</h3>
+
+    <div class="grid-2 grid" style="margin-bottom:14px">
+      <div>
+        <label>Delete All Records of a Category</label>
+        <select id="prodBulkCategory">
+          <option value="">Select category</option>
+        </select>
+      </div>
+
+      <div style="display:flex;align-items:end">
+        <button class="danger" onclick="clearProductionByCategory()">
+          🗑 Delete All of Selected Category
+        </button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <label>Search</label>
+      <input id="productionSearchBox" placeholder="Search by bill number, category, or comment..."
+        oninput="renderProduction()">
+    </div>
+
     <div id="productionTable"></div>
   </div>
 
@@ -612,6 +730,11 @@ tr:hover td{background:#fbfdff}
         <label>To Date</label>
         <input type="date" id="recordTo">
       </div>
+
+      <div>
+        <label>Search (Bill / Comment)</label>
+        <input id="recordSearch" placeholder="Search..." oninput="renderRecords()">
+      </div>
     </div>
 
     <div class="btns">
@@ -619,6 +742,7 @@ tr:hover td{background:#fbfdff}
       <button class="secondary" onclick="clearRecordFilter()">Clear</button>
       <button class="secondary" onclick="exportRecords()">⬇ Export to Excel</button>
       <button class="secondary" onclick="exportRecordsPDF()">⬇ Export to PDF</button>
+      <button class="danger" onclick="clearAllRecords()">🗑 Clear All Records</button>
     </div>
 
     <div id="recordsExportMsg"></div>
@@ -751,6 +875,16 @@ tr:hover td{background:#fbfdff}
     <div id="itemsTable"></div>
   </div>
 
+  <div class="card">
+    <h3>Low Stock Alerts</h3>
+    <div class="muted" style="margin-bottom:12px">
+      Set a threshold per category. When remaining stock on the Dashboard
+      drops below it, that row gets highlighted. Leave at 0 to disable
+      the alert for that category.
+    </div>
+    <div id="thresholdsTable"></div>
+  </div>
+
 </section>
 
 
@@ -769,10 +903,14 @@ tr:hover td{background:#fbfdff}
   <div class="card">
 
     <div class="notice" style="margin-bottom:15px">
-      Matching rules are the same as before: a line is recognized as
-      <b>Premium A4</b> if it mentions "real" + "long", <b>Premium Convent</b>
-      if it mentions "real" without "long", <b>Writon A4</b> for "007" + "long",
-      and <b>Writon Convent</b> for "007" without "long" — or any item name you've set up.
+      A line is recognized as <b>Premium A4</b> if it mentions "real" + "long",
+      <b>Premium Convent</b> for "real" + "note", <b>Writon A4</b> for "007" + "long",
+      and <b>Writon Convent</b> for "007" + "note" — or any item name you've set up
+      under Item Setup. Bill number and date are carried forward from each bill's
+      header line to all of its item lines automatically. Lines that don't match
+      one of these (e.g. drawing books, practical books, packing/loose-page
+      entries) are intentionally skipped since they aren't one of the 4 tracked
+      categories.
     </div>
 
     <div class="grid">
@@ -819,7 +957,14 @@ tr:hover td{background:#fbfdff}
 
   <div class="card">
     <h3>Import Preview</h3>
-    <div id="importPreview">No PDF selected.</div>
+
+    <div id="importSelectionControls" class="btns" style="display:none;align-items:center">
+      <button class="secondary" onclick="selectAllImportRows(true)">Select All</button>
+      <button class="secondary" onclick="selectAllImportRows(false)">Deselect All</button>
+      <span id="importSelectionSummary" class="muted" style="margin-left:6px"></span>
+    </div>
+
+    <div id="importPreview" style="margin-top:10px">No PDF selected.</div>
 
     <div class="btns">
       <button id="importConfirmBtn" class="primary" style="display:none" onclick="commitImport()">
@@ -927,7 +1072,8 @@ function newProfile(){
     paper:[],
     covers:[],
     production:[],
-    customItems:[]
+    customItems:[],
+    thresholds:{}
   };
 }
 
@@ -987,6 +1133,7 @@ function normalizeProfile(){
   if(!p.covers)p.covers=[];
   if(!p.production)p.production=[];
   if(!p.customItems)p.customItems=[];
+  if(!p.thresholds)p.thresholds={};
 
 }
 
@@ -1047,6 +1194,28 @@ function flash(elementId,text,success=true){
 
 }
 
+function flashSuccessWithWarning(elementId,successText,warningText){
+
+  const e=document.getElementById(elementId);
+
+  if(!e)return;
+
+  e.innerHTML=
+    `<div style="margin-top:10px" class="success">
+      ${escapeHtml(successText)}
+    </div>` +
+    (
+      warningText
+        ?`<div style="margin-top:4px" class="warning">
+            ⚠ ${escapeHtml(warningText)}
+          </div>`
+        :""
+    );
+
+  setTimeout(()=>e.innerHTML="",warningText?3800:2200);
+
+}
+
 function escapeHtml(value){
 
   return String(value??"")
@@ -1055,6 +1224,28 @@ function escapeHtml(value){
     .replace(/>/g,"&gt;")
     .replace(/"/g,"&quot;")
     .replace(/'/g,"&#039;");
+
+}
+
+function matchesSearch(record,query){
+
+  if(!query)return true;
+
+  const q=query.trim().toLowerCase();
+
+  if(!q)return true;
+
+  const haystack=
+    [
+      record.bill,
+      categoryName(record.category),
+      record.comment
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase();
+
+  return haystack.includes(q);
 
 }
 
@@ -1084,6 +1275,37 @@ function categoryName(id){
   const item=getItem(id);
 
   return item ? item.name : "Unknown";
+
+}
+
+function getThreshold(itemId){
+
+  const t=
+    currentProfile().thresholds[itemId];
+
+  return {
+    paperReams:Number(t?.paperReams)||0,
+    coverQty:Number(t?.coverQty)||0
+  };
+
+}
+
+function setThreshold(itemId,field,value){
+
+  const num=
+    Math.max(0,Number(value)||0);
+
+  if(!currentProfile().thresholds[itemId])
+    currentProfile().thresholds[itemId]={
+      paperReams:0,
+      coverQty:0
+    };
+
+  currentProfile().thresholds[itemId][field]=num;
+
+  saveData();
+
+  renderDashboard();
 
 }
 
@@ -1209,6 +1431,9 @@ function populateAllCategories(){
   populateCategorySelect("prodCategory");
   populateCategorySelect("recordCategory",true);
   populateCategorySelect("importCategory",true);
+  populateCategorySelect("paperBulkCategory");
+  populateCategorySelect("coverBulkCategory");
+  populateCategorySelect("prodBulkCategory");
 
 }
 
@@ -1217,12 +1442,15 @@ function populateAllCategories(){
    PAPER
 ========================================================= */
 
+let editingPaperId=null;
+
 function addPaper(){
 
   const date=document.getElementById("paperDate").value;
   const bill=document.getElementById("paperBill").value.trim();
   const category=document.getElementById("paperCategory").value;
   const reams=Number(document.getElementById("paperReams").value);
+  const comment=document.getElementById("paperComment").value.trim();
 
   if(!date)
     return flash("paperMsg","Please select date.",false);
@@ -1233,26 +1461,67 @@ function addPaper(){
   if(!(reams>0))
     return flash("paperMsg","Enter reams greater than zero.",false);
 
-  showLoader("Adding paper...");
+  const isEditing=editingPaperId!==null;
+
+  const duplicateCount=
+    bill
+      ?currentProfile().paper.filter(
+          x=>x.bill &&
+             x.bill.trim().toLowerCase()===bill.toLowerCase() &&
+             x.id!==editingPaperId
+        ).length
+      :0;
+
+  showLoader(isEditing?"Updating paper...":"Adding paper...");
 
   setTimeout(()=>{
 
-    currentProfile().paper.push({
-      id:Date.now(),
-      date,
-      bill,
-      category,
-      reams
-    });
+    if(isEditing){
+
+      const record=
+        currentProfile().paper.find(
+          x=>x.id===editingPaperId
+        );
+
+      if(record){
+
+        record.date=date;
+        record.bill=bill;
+        record.category=category;
+        record.reams=reams;
+        record.comment=comment;
+
+      }
+
+    }else{
+
+      currentProfile().paper.push({
+        id:Date.now(),
+        date,
+        bill,
+        category,
+        reams,
+        comment
+      });
+
+    }
 
     saveData();
 
-    clearPaper();
+    cancelPaperEdit();
     renderAll();
 
     hideLoader();
 
-    flash("paperMsg","Paper record added successfully.");
+    flashSuccessWithWarning(
+      "paperMsg",
+      isEditing
+        ?"Paper record updated successfully."
+        :"Paper record added successfully.",
+      duplicateCount>0
+        ?`Bill "${bill}" already exists in ${duplicateCount} other paper record(s).`
+        :null
+    );
 
   },250);
 
@@ -1263,7 +1532,41 @@ function clearPaper(){
   document.getElementById("paperBill").value="";
   document.getElementById("paperReams").value="";
   document.getElementById("paperCategory").value="";
+  document.getElementById("paperComment").value="";
   document.getElementById("paperDate").value=today();
+
+}
+
+function editPaper(id){
+
+  const record=
+    currentProfile().paper.find(x=>x.id===id);
+
+  if(!record)return;
+
+  editingPaperId=id;
+
+  document.getElementById("paperDate").value=record.date;
+  document.getElementById("paperBill").value=record.bill||"";
+  document.getElementById("paperCategory").value=record.category;
+  document.getElementById("paperReams").value=record.reams;
+  document.getElementById("paperComment").value=record.comment||"";
+
+  document.getElementById("paperSubmitBtn").textContent="Update Paper";
+  document.getElementById("paperCancelEditBtn").style.display="inline-block";
+
+  document.querySelector('[data-page="paper"]').scrollIntoView?.();
+
+}
+
+function cancelPaperEdit(){
+
+  editingPaperId=null;
+
+  clearPaper();
+
+  document.getElementById("paperSubmitBtn").textContent="Add Paper";
+  document.getElementById("paperCancelEditBtn").style.display="none";
 
 }
 
@@ -1278,12 +1581,78 @@ function deletePaper(id){
     currentProfile().paper=
       currentProfile().paper.filter(x=>x.id!==id);
 
+    if(editingPaperId===id)
+      cancelPaperEdit();
+
     saveData();
     renderAll();
 
     hideLoader();
 
   },200);
+
+}
+
+function clearPaperByCategory(){
+
+  const category=
+    document.getElementById("paperBulkCategory").value;
+
+  if(!category)
+    return flash(
+      "paperMsg",
+      "Select a category first.",
+      false
+    );
+
+  const catName=
+    categoryName(category);
+
+  const count=
+    currentProfile().paper.filter(
+      x=>x.category===category
+    ).length;
+
+  if(!count)
+    return flash(
+      "paperMsg",
+      `No paper records found for ${catName}.`,
+      false
+    );
+
+  if(!confirm(
+    `Delete all ${count} paper purchase record(s) for "${catName}"? This cannot be undone.`
+  ))return;
+
+  showLoader("Deleting...");
+
+  setTimeout(()=>{
+
+    const stillEditingExists=
+      editingPaperId &&
+      currentProfile().paper.some(
+        x=>x.id===editingPaperId && x.category===category
+      );
+
+    currentProfile().paper=
+      currentProfile().paper.filter(
+        x=>x.category!==category
+      );
+
+    if(stillEditingExists)
+      cancelPaperEdit();
+
+    saveData();
+    renderAll();
+
+    hideLoader();
+
+    flash(
+      "paperMsg",
+      `Deleted all ${catName} paper records.`
+    );
+
+  },250);
 
 }
 
@@ -1333,10 +1702,83 @@ function renderPaperStock(){
 
 }
 
+function renderPaperHistory(){
+
+  const searchBox=
+    document.getElementById("paperSearchBox");
+
+  const query=
+    searchBox?searchBox.value:"";
+
+  const rows=
+    currentProfile().paper
+      .filter(r=>matchesSearch(r,query))
+      .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+
+  const box=
+    document.getElementById("paperHistoryTable");
+
+  if(!box)return;
+
+  if(!rows.length){
+
+    box.innerHTML=
+      `<div class="notice">${
+        query
+          ?"No paper purchase entries match your search."
+          :"No paper purchase entries yet."
+      }</div>`;
+
+    return;
+
+  }
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Bill No.</th>
+        <th>Category</th>
+        <th>Reams</th>
+        <th>Comment</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  rows.forEach(r=>{
+
+    html+=
+      `<tr>
+        <td>${escapeHtml(r.date)}</td>
+        <td>${escapeHtml(r.bill)}</td>
+        <td>${escapeHtml(categoryName(r.category))}</td>
+        <td>${money(r.reams)}</td>
+        <td>${escapeHtml(r.comment||"-")}</td>
+        <td>
+          <div class="btns" style="margin-top:0">
+            <button class="secondary" onclick="editPaper(${r.id})">Edit</button>
+            <button class="danger" onclick="deletePaper(${r.id})">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  box.innerHTML=html;
+
+}
+
 
 /* =========================================================
    COVERS
 ========================================================= */
+
+let editingCoverId=null;
 
 function addCovers(){
 
@@ -1344,6 +1786,7 @@ function addCovers(){
   const bill=document.getElementById("coverBill").value.trim();
   const category=document.getElementById("coverCategory").value;
   const qty=Number(document.getElementById("coverQty").value);
+  const comment=document.getElementById("coverComment").value.trim();
 
   if(!date)
     return flash("coverMsg","Please select date.",false);
@@ -1354,26 +1797,67 @@ function addCovers(){
   if(!(qty>0))
     return flash("coverMsg","Enter cover quantity.",false);
 
-  showLoader("Adding covers...");
+  const isEditing=editingCoverId!==null;
+
+  const duplicateCount=
+    bill
+      ?currentProfile().covers.filter(
+          x=>x.bill &&
+             x.bill.trim().toLowerCase()===bill.toLowerCase() &&
+             x.id!==editingCoverId
+        ).length
+      :0;
+
+  showLoader(isEditing?"Updating covers...":"Adding covers...");
 
   setTimeout(()=>{
 
-    currentProfile().covers.push({
-      id:Date.now(),
-      date,
-      bill,
-      category,
-      qty
-    });
+    if(isEditing){
+
+      const record=
+        currentProfile().covers.find(
+          x=>x.id===editingCoverId
+        );
+
+      if(record){
+
+        record.date=date;
+        record.bill=bill;
+        record.category=category;
+        record.qty=qty;
+        record.comment=comment;
+
+      }
+
+    }else{
+
+      currentProfile().covers.push({
+        id:Date.now(),
+        date,
+        bill,
+        category,
+        qty,
+        comment
+      });
+
+    }
 
     saveData();
 
-    clearCovers();
+    cancelCoverEdit();
     renderAll();
 
     hideLoader();
 
-    flash("coverMsg","Cover record added successfully.");
+    flashSuccessWithWarning(
+      "coverMsg",
+      isEditing
+        ?"Cover record updated successfully."
+        :"Cover record added successfully.",
+      duplicateCount>0
+        ?`Bill "${bill}" already exists in ${duplicateCount} other cover record(s).`
+        :null
+    );
 
   },250);
 
@@ -1384,7 +1868,125 @@ function clearCovers(){
   document.getElementById("coverBill").value="";
   document.getElementById("coverQty").value="";
   document.getElementById("coverCategory").value="";
+  document.getElementById("coverComment").value="";
   document.getElementById("coverDate").value=today();
+
+}
+
+function editCover(id){
+
+  const record=
+    currentProfile().covers.find(x=>x.id===id);
+
+  if(!record)return;
+
+  editingCoverId=id;
+
+  document.getElementById("coverDate").value=record.date;
+  document.getElementById("coverBill").value=record.bill||"";
+  document.getElementById("coverCategory").value=record.category;
+  document.getElementById("coverQty").value=record.qty;
+  document.getElementById("coverComment").value=record.comment||"";
+
+  document.getElementById("coverSubmitBtn").textContent="Update Covers";
+  document.getElementById("coverCancelEditBtn").style.display="inline-block";
+
+}
+
+function cancelCoverEdit(){
+
+  editingCoverId=null;
+
+  clearCovers();
+
+  document.getElementById("coverSubmitBtn").textContent="Add Covers";
+  document.getElementById("coverCancelEditBtn").style.display="none";
+
+}
+
+function deleteCover(id){
+
+  if(!confirm("Delete this cover record?"))return;
+
+  showLoader("Deleting...");
+
+  setTimeout(()=>{
+
+    currentProfile().covers=
+      currentProfile().covers.filter(x=>x.id!==id);
+
+    if(editingCoverId===id)
+      cancelCoverEdit();
+
+    saveData();
+    renderAll();
+
+    hideLoader();
+
+  },200);
+
+}
+
+function clearCoverByCategory(){
+
+  const category=
+    document.getElementById("coverBulkCategory").value;
+
+  if(!category)
+    return flash(
+      "coverMsg",
+      "Select a category first.",
+      false
+    );
+
+  const catName=
+    categoryName(category);
+
+  const count=
+    currentProfile().covers.filter(
+      x=>x.category===category
+    ).length;
+
+  if(!count)
+    return flash(
+      "coverMsg",
+      `No cover records found for ${catName}.`,
+      false
+    );
+
+  if(!confirm(
+    `Delete all ${count} cover purchase record(s) for "${catName}"? This cannot be undone.`
+  ))return;
+
+  showLoader("Deleting...");
+
+  setTimeout(()=>{
+
+    const stillEditingExists=
+      editingCoverId &&
+      currentProfile().covers.some(
+        x=>x.id===editingCoverId && x.category===category
+      );
+
+    currentProfile().covers=
+      currentProfile().covers.filter(
+        x=>x.category!==category
+      );
+
+    if(stillEditingExists)
+      cancelCoverEdit();
+
+    saveData();
+    renderAll();
+
+    hideLoader();
+
+    flash(
+      "coverMsg",
+      `Deleted all ${catName} cover records.`
+    );
+
+  },250);
 
 }
 
@@ -1430,10 +2032,108 @@ function renderCoverStock(){
 
 }
 
+function renderCoverHistory(){
+
+  const searchBox=
+    document.getElementById("coverSearchBox");
+
+  const query=
+    searchBox?searchBox.value:"";
+
+  const rows=
+    currentProfile().covers
+      .filter(r=>matchesSearch(r,query))
+      .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+
+  const box=
+    document.getElementById("coverHistoryTable");
+
+  if(!box)return;
+
+  if(!rows.length){
+
+    box.innerHTML=
+      `<div class="notice">${
+        query
+          ?"No cover purchase entries match your search."
+          :"No cover purchase entries yet."
+      }</div>`;
+
+    return;
+
+  }
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Bill No.</th>
+        <th>Category</th>
+        <th>Quantity</th>
+        <th>Comment</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  rows.forEach(r=>{
+
+    html+=
+      `<tr>
+        <td>${escapeHtml(r.date)}</td>
+        <td>${escapeHtml(r.bill)}</td>
+        <td>${escapeHtml(categoryName(r.category))}</td>
+        <td>${r.qty}</td>
+        <td>${escapeHtml(r.comment||"-")}</td>
+        <td>
+          <div class="btns" style="margin-top:0">
+            <button class="secondary" onclick="editCover(${r.id})">Edit</button>
+            <button class="danger" onclick="deleteCover(${r.id})">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  box.innerHTML=html;
+
+}
+
 
 /* =========================================================
    PRODUCTION
 ========================================================= */
+
+/*
+  Paper sheet / ream calculation for built-in items:
+
+    1. A notebook's cover uses 4 of the printed pages (front outer,
+       front inner, back inner, back outer) - those pages are NOT cut
+       from the inside paper reams, since covers are tracked and
+       purchased entirely separately (Cover Purchase page).
+    2. The remaining "inside" pages are printed on sheets that are
+       folded once, yielding 4 printed page-faces per sheet.
+       -> sheets per notebook = (pages - 4) / 4
+    3. One full ream sheet (48cm x 72cm, as purchased) is cut into 4
+       of these working sheets.
+    4. One ream contains 500 full sheets, i.e. 2000 of these working
+       sheets (500 x 4).
+
+  Example matching a 96-page notebook: (96-4)/4 = 23 sheets/notebook.
+  500 copies -> 500*23 = 11500 sheets -> 11500/4 = 2875 full sheets
+  -> 2875/500 = 5.75 reams.
+
+  Custom items (Item Setup page) keep their manually configured
+  "sheets per notebook" value instead, since they may not follow this
+  standard cover/fold convention.
+*/
+const COVER_PAGES=4;
+const PAGES_PER_SHEET=4;
+const SHEETS_PER_REAM=2000; // 500 full sheets x 4 working sheets each
 
 function calculateSheets(category,pages,qty){
 
@@ -1441,20 +2141,21 @@ function calculateSheets(category,pages,qty){
 
   if(!item)return 0;
 
-  /*
-    Based on the user's existing calculation:
-    96-page notebook = 23 sheets.
-    The configurable sheetsPerBook allows custom items.
-  */
+  let sheetsPerBook;
 
-  let sheetsPerBook=Number(item.sheetsPerBook)||23;
+  if(item.custom){
 
-  if(
-    !item.custom &&
-    Number(pages)===96
-  ){
+    sheetsPerBook=Number(item.sheetsPerBook)||0;
 
-    sheetsPerBook=23;
+  }else{
+
+    const insidePages=
+      Number(pages||0)-COVER_PAGES;
+
+    sheetsPerBook=
+      insidePages>0
+        ?insidePages/PAGES_PER_SHEET
+        :0;
 
   }
 
@@ -1481,15 +2182,22 @@ function updateProductionInfo(){
   const qty=Number(document.getElementById("prodQty").value)||0;
 
   const sheets=calculateSheets(category,pages,qty);
-  const reams=sheets/500;
+  const reams=sheets/SHEETS_PER_REAM;
+
+  const sheetsPerBookDisplay=
+    item.custom
+      ?item.sheetsPerBook
+      :(qty>0?(sheets/qty).toFixed(2):((Number(pages)-COVER_PAGES)/PAGES_PER_SHEET).toFixed(2));
 
   document.getElementById("productionInfo").innerHTML=
     `<b>${escapeHtml(item.name)}</b><br>
-     Sheets per notebook: ${item.sheetsPerBook}<br>
+     Sheets per notebook: ${sheetsPerBookDisplay}<br>
      Total paper sheets: ${sheets.toFixed(2)}<br>
      Paper required: <b>${reams.toFixed(2)} reams</b>`;
 
 }
+
+let editingProductionId=null;
 
 function addProduction(){
 
@@ -1498,6 +2206,7 @@ function addProduction(){
   const category=document.getElementById("prodCategory").value;
   const pages=Number(document.getElementById("prodPages").value);
   const qty=Number(document.getElementById("prodQty").value);
+  const comment=document.getElementById("prodComment").value.trim();
 
   if(!date)
     return flash("productionMsg","Please select date.",false);
@@ -1514,31 +2223,72 @@ function addProduction(){
     qty
   );
 
-  showLoader("Adding production...");
+  const isEditing=editingProductionId!==null;
+
+  const duplicateCount=
+    bill
+      ?currentProfile().production.filter(
+          x=>x.bill &&
+             x.bill.trim().toLowerCase()===bill.toLowerCase() &&
+             x.id!==editingProductionId
+        ).length
+      :0;
+
+  showLoader(isEditing?"Updating production...":"Adding production...");
 
   setTimeout(()=>{
 
-    currentProfile().production.push({
-      id:Date.now(),
-      date,
-      bill,
-      category,
-      pages,
-      qty,
-      sheets,
-      reams:sheets/500
-    });
+    if(isEditing){
+
+      const record=
+        currentProfile().production.find(
+          x=>x.id===editingProductionId
+        );
+
+      if(record){
+
+        record.date=date;
+        record.bill=bill;
+        record.category=category;
+        record.pages=pages;
+        record.qty=qty;
+        record.sheets=sheets;
+        record.reams=sheets/SHEETS_PER_REAM;
+        record.comment=comment;
+
+      }
+
+    }else{
+
+      currentProfile().production.push({
+        id:Date.now(),
+        date,
+        bill,
+        category,
+        pages,
+        qty,
+        sheets,
+        reams:sheets/SHEETS_PER_REAM,
+        comment
+      });
+
+    }
 
     saveData();
 
-    clearProduction();
+    cancelProductionEdit();
     renderAll();
 
     hideLoader();
 
-    flash(
+    flashSuccessWithWarning(
       "productionMsg",
-      "Production record added successfully."
+      isEditing
+        ?"Production record updated successfully."
+        :"Production record added successfully.",
+      duplicateCount>0
+        ?`Bill "${bill}" already exists in ${duplicateCount} other production record(s).`
+        :null
     );
 
   },250);
@@ -1551,15 +2301,72 @@ function clearProduction(){
   document.getElementById("prodCategory").value="";
   document.getElementById("prodPages").value=96;
   document.getElementById("prodQty").value="";
+  document.getElementById("prodComment").value="";
   document.getElementById("prodDate").value=today();
 
   updateProductionInfo();
 
 }
 
+function editProduction(id){
+
+  const record=
+    currentProfile().production.find(x=>x.id===id);
+
+  if(!record)return;
+
+  editingProductionId=id;
+
+  document.getElementById("prodDate").value=record.date;
+  document.getElementById("prodBill").value=record.bill||"";
+  document.getElementById("prodCategory").value=record.category;
+  document.getElementById("prodPages").value=record.pages;
+  document.getElementById("prodQty").value=record.qty;
+  document.getElementById("prodComment").value=record.comment||"";
+
+  document.getElementById("prodSubmitBtn").textContent="Update Production";
+  document.getElementById("prodCancelEditBtn").style.display="inline-block";
+
+  updateProductionInfo();
+
+}
+
+function cancelProductionEdit(){
+
+  editingProductionId=null;
+
+  clearProduction();
+
+  document.getElementById("prodSubmitBtn").textContent="Add Production";
+  document.getElementById("prodCancelEditBtn").style.display="none";
+
+}
+
 function renderProduction(){
 
-  const rows=currentProfile().production;
+  const searchBox=
+    document.getElementById("productionSearchBox");
+
+  const query=
+    searchBox?searchBox.value:"";
+
+  const rows=
+    currentProfile().production
+      .filter(r=>matchesSearch(r,query))
+      .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+
+  if(!rows.length){
+
+    document.getElementById("productionTable").innerHTML=
+      `<div class="notice">${
+        query
+          ?"No production records match your search."
+          :"No production records yet."
+      }</div>`;
+
+    return;
+
+  }
 
   let html=
     `<div class="table-wrap">
@@ -1573,12 +2380,13 @@ function renderProduction(){
         <th>Quantity</th>
         <th>Sheets</th>
         <th>Reams</th>
+        <th>Comment</th>
         <th></th>
       </tr>
     </thead>
     <tbody>`;
 
-  rows.slice().reverse().forEach(r=>{
+  rows.forEach(r=>{
 
     html+=
       `<tr>
@@ -1589,11 +2397,18 @@ function renderProduction(){
         <td>${r.qty}</td>
         <td>${money(r.sheets)}</td>
         <td>${money(r.reams)}</td>
+        <td>${escapeHtml(r.comment||"-")}</td>
         <td>
-          <button class="danger"
-            onclick="deleteProduction(${r.id})">
-            Delete
-          </button>
+          <div class="btns" style="margin-top:0">
+            <button class="secondary"
+              onclick="editProduction(${r.id})">
+              Edit
+            </button>
+            <button class="danger"
+              onclick="deleteProduction(${r.id})">
+              Delete
+            </button>
+          </div>
         </td>
       </tr>`;
 
@@ -1616,8 +2431,74 @@ function deleteProduction(id){
       x=>x.id!==id
     );
 
+  if(editingProductionId===id)
+    cancelProductionEdit();
+
   saveData();
   renderAll();
+
+}
+
+function clearProductionByCategory(){
+
+  const category=
+    document.getElementById("prodBulkCategory").value;
+
+  if(!category)
+    return flash(
+      "productionMsg",
+      "Select a category first.",
+      false
+    );
+
+  const catName=
+    categoryName(category);
+
+  const count=
+    currentProfile().production.filter(
+      x=>x.category===category
+    ).length;
+
+  if(!count)
+    return flash(
+      "productionMsg",
+      `No production records found for ${catName}.`,
+      false
+    );
+
+  if(!confirm(
+    `Delete all ${count} production record(s) for "${catName}"? This cannot be undone.`
+  ))return;
+
+  showLoader("Deleting...");
+
+  setTimeout(()=>{
+
+    const stillEditingExists=
+      editingProductionId &&
+      currentProfile().production.some(
+        x=>x.id===editingProductionId && x.category===category
+      );
+
+    currentProfile().production=
+      currentProfile().production.filter(
+        x=>x.category!==category
+      );
+
+    if(stillEditingExists)
+      cancelProductionEdit();
+
+    saveData();
+    renderAll();
+
+    hideLoader();
+
+    flash(
+      "productionMsg",
+      `Deleted all ${catName} production records.`
+    );
+
+  },250);
 
 }
 
@@ -1632,6 +2513,12 @@ function getFilteredRecordRows(){
   const category=document.getElementById("recordCategory").value;
   const from=document.getElementById("recordFrom").value;
   const to=document.getElementById("recordTo").value;
+
+  const searchBox=
+    document.getElementById("recordSearch");
+
+  const query=
+    searchBox?searchBox.value:"";
 
   let rows=[];
 
@@ -1649,12 +2536,17 @@ function getFilteredRecordRows(){
       if(to && r.date>to)
         return;
 
+      if(!matchesSearch(r,query))
+        return;
+
       rows.push({
         date:r.date,
         bill:r.bill,
         kind,
         category:r.category,
+        pages:kind==="Production"?r.pages:"",
         qty:r.qty||r.reams||0,
+        comment:r.comment||"",
         reams:
           kind==="Paper Purchase"
             ?Number(r.reams||0)
@@ -1677,7 +2569,7 @@ function getFilteredRecordRows(){
     add(currentProfile().production,"Production");
 
   rows.sort((a,b)=>
-    String(b.date).localeCompare(String(a.date))
+    String(a.date).localeCompare(String(b.date))
   );
 
   return rows;
@@ -1699,17 +2591,37 @@ function renderRecords(){
 
   }
 
+  const totalQty=
+    rows.reduce(
+      (s,r)=>s+(Number(r.qty)||0),
+      0
+    );
+
+  const totalReams=
+    rows.reduce(
+      (s,r)=>s+(r.reams!==""?Number(r.reams)||0:0),
+      0
+    );
+
   let html=
-    `<div class="table-wrap">
+    `<div class="notice" style="margin-bottom:14px">
+      <b>${rows.length}</b> record(s) matched &nbsp;|&nbsp;
+      Total Quantity: <b>${totalQty}</b> &nbsp;|&nbsp;
+      Total Reams: <b>${money(totalReams)}</b>
+    </div>
+
+    <div class="table-wrap">
     <table>
     <thead>
       <tr>
         <th>Date</th>
         <th>Bill No.</th>
-        <th>Type</th>
         <th>Category</th>
+        <th>Pages</th>
         <th>Quantity</th>
         <th>Reams</th>
+        <th>Type</th>
+        <th>Comment</th>
       </tr>
     </thead>
     <tbody>`;
@@ -1720,15 +2632,28 @@ function renderRecords(){
       `<tr>
         <td>${escapeHtml(r.date)}</td>
         <td>${escapeHtml(r.bill)}</td>
-        <td>${r.kind}</td>
         <td>${escapeHtml(categoryName(r.category))}</td>
+        <td>${r.pages!==""?r.pages:"-"}</td>
         <td>${r.qty}</td>
         <td>${r.reams!==""?money(r.reams):"-"}</td>
+        <td>${r.kind}</td>
+        <td>${escapeHtml(r.comment||"-")}</td>
       </tr>`;
 
   });
 
-  html+=`</tbody></table></div>`;
+  html+=
+    `</tbody>
+    <tfoot>
+      <tr style="font-weight:700;background:#f7f9fc">
+        <td colspan="4" style="text-align:right">Totals:</td>
+        <td>${totalQty}</td>
+        <td>${money(totalReams)}</td>
+        <td></td>
+        <td></td>
+      </tr>
+    </tfoot>
+    </table></div>`;
 
   document.getElementById("recordsTable").innerHTML=
     html;
@@ -1741,8 +2666,55 @@ function clearRecordFilter(){
   document.getElementById("recordCategory").value="";
   document.getElementById("recordFrom").value="";
   document.getElementById("recordTo").value="";
+  document.getElementById("recordSearch").value="";
 
   renderRecords();
+
+}
+
+function clearAllRecords(){
+
+  const p=currentProfile();
+
+  const total=
+    p.paper.length+
+    p.covers.length+
+    p.production.length;
+
+  if(!total)
+    return flash(
+      "recordsExportMsg",
+      "There are no records to clear.",
+      false
+    );
+
+  if(!confirm(
+    `This will permanently delete ALL paper, cover, and production records (${total} total) for "${state.activeProfile}". This cannot be undone. Continue?`
+  ))return;
+
+  showLoader("Clearing all records...");
+
+  setTimeout(()=>{
+
+    p.paper=[];
+    p.covers=[];
+    p.production=[];
+
+    cancelPaperEdit();
+    cancelCoverEdit();
+    cancelProductionEdit();
+
+    saveData();
+    renderAll();
+
+    hideLoader();
+
+    flash(
+      "recordsExportMsg",
+      "All records cleared for this profile."
+    );
+
+  },250);
 
 }
 
@@ -1767,10 +2739,12 @@ function exportRecords(){
   const data=rows.map(r=>({
     "Date":r.date,
     "Bill No.":r.bill,
-    "Type":r.kind,
     "Category":categoryName(r.category),
+    "Pages":r.pages!==""?r.pages:"",
     "Quantity":r.qty,
-    "Reams":r.reams!==""?Number(money(r.reams)):""
+    "Reams":r.reams!==""?Number(money(r.reams)):"",
+    "Type":r.kind,
+    "Comment":r.comment||""
   }));
 
   const ws=XLSX.utils.json_to_sheet(data);
@@ -1792,6 +2766,114 @@ function exportRecords(){
     "recordsExportMsg",
     "Records exported successfully."
   );
+
+}
+
+/*
+  Renders a small "Category | ...columns... | TOTAL" summary table
+  into a jsPDF doc at the given Y position, with a bold highlighted
+  TOTAL row. Returns the Y position to continue drawing from next.
+  Used for the Paper / Cover / Production summary blocks in the
+  Records PDF export.
+*/
+function renderPdfCategorySummary(doc,cursorY,title,map,columns,emptyText){
+
+  const categories=
+    Object.keys(map);
+
+  doc.setFontSize(11);
+  doc.setFont(undefined,"bold");
+  doc.text(title,14,cursorY);
+  doc.setFont(undefined,"normal");
+
+  cursorY+=2;
+
+  if(!categories.length){
+
+    doc.setFontSize(9);
+    doc.setTextColor(120,120,120);
+    doc.text(emptyText,14,cursorY+5);
+    doc.setTextColor(0,0,0);
+
+    return cursorY+13;
+
+  }
+
+  const totals={};
+
+  columns.forEach(c=>totals[c.key]=0);
+
+  const body=
+    categories.map(catId=>{
+
+      const row=
+        map[catId];
+
+      const cells=
+        [categoryName(catId)];
+
+      columns.forEach(c=>{
+
+        const val=
+          Number(row[c.key])||0;
+
+        totals[c.key]+=val;
+
+        cells.push(
+          c.formatter?c.formatter(val):String(val)
+        );
+
+      });
+
+      return cells;
+
+    });
+
+  const totalRow=["TOTAL"];
+
+  columns.forEach(c=>{
+
+    totalRow.push(
+      c.formatter
+        ?c.formatter(totals[c.key])
+        :String(totals[c.key])
+    );
+
+  });
+
+  body.push(totalRow);
+
+  doc.autoTable({
+    startY:cursorY,
+    head:[["Category",...columns.map(c=>c.label)]],
+    body,
+    styles:{fontSize:9},
+    headStyles:{fillColor:[16,42,86]},
+    tableWidth:150,
+    margin:{left:14},
+    didParseCell:function(data){
+
+      if(
+        data.section==="body" &&
+        data.row.index===body.length-1
+      ){
+
+        data.cell.styles.fontStyle="bold";
+        data.cell.styles.fillColor=[235,240,250];
+
+      }
+
+    }
+  });
+
+  return doc.lastAutoTable.finalY+8;
+
+}
+
+function toFilenameSegment(str){
+
+  return String(str||"")
+    .replace(/[^a-zA-Z0-9]+/g,"");
 
 }
 
@@ -1832,43 +2914,224 @@ function exportRecordsPDF(){
   doc.setFontSize(10);
 
   doc.text(
-    `Generated on ${today()}`,
+    `Generated on ${formatDisplayDate(today())}`,
     14,
     21
   );
 
+  /*
+    Filter summary line - shows exactly what scope this report
+    covers, so it's readable on its own without opening the app.
+  */
+
+  const typeVal=
+    document.getElementById("recordType").value;
+
+  const categoryVal=
+    document.getElementById("recordCategory").value;
+
+  const fromVal=
+    document.getElementById("recordFrom").value;
+
+  const toVal=
+    document.getElementById("recordTo").value;
+
+  const searchBox=
+    document.getElementById("recordSearch");
+
+  const searchVal=
+    searchBox?searchBox.value.trim():"";
+
+  const typeLabelMap={
+    all:"All Types",
+    paper:"Paper Purchase",
+    covers:"Cover Purchase",
+    production:"Production"
+  };
+
+  const typeLabel=
+    typeLabelMap[typeVal]||"All Types";
+
+  const categoryLabel=
+    categoryVal
+      ?categoryName(categoryVal)
+      :"All Categories";
+
+  const dateRangeLabel=
+    (fromVal||toVal)
+      ?`${fromVal?formatDisplayDate(fromVal):"Beginning"} to ${toVal?formatDisplayDate(toVal):"Today"}`
+      :"All Dates";
+
+  let filterLine=
+    `Filters Applied:  Type: ${typeLabel}   |   Category: ${categoryLabel}   |   Date Range: ${dateRangeLabel}`;
+
+  if(searchVal)
+    filterLine+=`   |   Search: "${searchVal}"`;
+
+  doc.setFontSize(10);
+  doc.setTextColor(90,90,90);
+  doc.text(filterLine,14,28);
+  doc.setTextColor(0,0,0);
+
+  let cursorY=35;
+
+  /*
+    Overall totals recap - same numbers shown on the Records page
+    itself, so the quantity/reams totals are clearly visible right
+    at the top of the PDF, not just buried in the detail table.
+  */
+
+  const totalQtyAll=
+    rows.reduce(
+      (s,r)=>s+(Number(r.qty)||0),
+      0
+    );
+
+  const totalReamsAll=
+    rows.reduce(
+      (s,r)=>s+(r.reams!==""?Number(r.reams)||0:0),
+      0
+    );
+
+  doc.setFontSize(10);
+  doc.setFont(undefined,"bold");
+
+  doc.text(
+    `Overall:  ${rows.length} record(s)   |   Total Quantity: ${totalQtyAll}   |   Total Reams: ${money(totalReamsAll)}`,
+    14,
+    cursorY
+  );
+
+  doc.setFont(undefined,"normal");
+
+  cursorY+=8;
+
+  /*
+    Per-type category summaries - Paper, Cover, Production - each
+    showing the relevant quantity totals broken down by category.
+  */
+
+  const paperSummaryMap={};
+  const coverSummaryMap={};
+  const productionSummaryMap={};
+
+  rows.forEach(r=>{
+
+    if(r.kind==="Paper Purchase"){
+
+      if(!paperSummaryMap[r.category])
+        paperSummaryMap[r.category]={reams:0};
+
+      paperSummaryMap[r.category].reams+=
+        Number(r.reams)||0;
+
+    }else if(r.kind==="Cover Purchase"){
+
+      if(!coverSummaryMap[r.category])
+        coverSummaryMap[r.category]={qty:0};
+
+      coverSummaryMap[r.category].qty+=
+        Number(r.qty)||0;
+
+    }else if(r.kind==="Production"){
+
+      if(!productionSummaryMap[r.category])
+        productionSummaryMap[r.category]={books:0,reams:0};
+
+      productionSummaryMap[r.category].books+=
+        Number(r.qty)||0;
+
+      productionSummaryMap[r.category].reams+=
+        Number(r.reams)||0;
+
+    }
+
+  });
+
+  if(Object.keys(paperSummaryMap).length){
+
+    cursorY=
+      renderPdfCategorySummary(
+        doc,cursorY,
+        "Paper Purchase Summary",
+        paperSummaryMap,
+        [{label:"Reams Purchased",key:"reams",formatter:money}]
+      );
+
+  }
+
+  if(Object.keys(coverSummaryMap).length){
+
+    cursorY=
+      renderPdfCategorySummary(
+        doc,cursorY,
+        "Cover Purchase Summary",
+        coverSummaryMap,
+        [{label:"Covers Purchased",key:"qty"}]
+      );
+
+  }
+
+  if(Object.keys(productionSummaryMap).length){
+
+    cursorY=
+      renderPdfCategorySummary(
+        doc,cursorY,
+        "Production Summary",
+        productionSummaryMap,
+        [
+          {label:"Notebooks Produced",key:"books"},
+          {label:"Reams Consumed",key:"reams",formatter:money}
+        ]
+      );
+
+  }
+
   const body=
     rows.map(r=>[
-      r.date,
+      formatDisplayDate(r.date),
       r.bill||"-",
-      r.kind,
       categoryName(r.category),
+      r.pages!==""?String(r.pages):"-",
       String(r.qty),
-      r.reams!==""?money(r.reams):"-"
+      r.reams!==""?money(r.reams):"-",
+      r.kind,
+      r.comment||"-"
     ]);
 
   doc.autoTable({
-    startY:27,
+    startY:cursorY,
     head:[[
       "Date",
       "Bill No.",
-      "Type",
       "Category",
+      "Pages",
       "Quantity",
-      "Reams"
+      "Reams",
+      "Type",
+      "Comment"
     ]],
     body,
     styles:{fontSize:9},
     headStyles:{fillColor:[23,105,224]}
   });
 
+  /*
+    Filename convention: ProfileName_Category_Type_Date.pdf
+    e.g. "SultanLawBookBinding_PremiumA4_Production_2026-08-24.pdf"
+  */
+
   const safeProfile=
-    state.activeProfile
-      .replace(/[^a-z0-9]+/gi,"_")
-      .replace(/^_+|_+$/g,"");
+    toFilenameSegment(state.activeProfile);
+
+  const categorySegment=
+    toFilenameSegment(categoryLabel);
+
+  const typeSegment=
+    toFilenameSegment(typeLabel);
 
   doc.save(
-    `${safeProfile||"records"}_records_${today()}.pdf`
+    `${safeProfile||"Records"}_${categorySegment}_${typeSegment}_${today()}.pdf`
   );
 
   flash(
@@ -2561,7 +3824,7 @@ function renderItems(){
         <td><b>${escapeHtml(item.name)}</b></td>
         <td>${escapeHtml(item.brand)}</td>
         <td>${escapeHtml(item.size)}</td>
-        <td>${item.sheetsPerBook}</td>
+        <td>${item.custom?item.sheetsPerBook:"Auto (pages−4)/4"}</td>
         <td>${item.custom?"Custom":"Built-in"}</td>
         <td>
           ${
@@ -2581,6 +3844,55 @@ function renderItems(){
     `</tbody></table></div>`;
 
   table.innerHTML=html;
+
+}
+
+function renderThresholdsTable(){
+
+  const box=
+    document.getElementById("thresholdsTable");
+
+  if(!box)return;
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Low Stock Alert - Paper (Reams)</th>
+        <th>Low Stock Alert - Covers (Qty)</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  getItems().forEach(item=>{
+
+    const t=
+      getThreshold(item.id);
+
+    html+=
+      `<tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td>
+          <input type="number" min="0" step="0.5"
+            value="${t.paperReams}"
+            style="max-width:120px"
+            onchange="setThreshold('${item.id}','paperReams',this.value)">
+        </td>
+        <td>
+          <input type="number" min="0" step="1"
+            value="${t.coverQty}"
+            style="max-width:120px"
+            onchange="setThreshold('${item.id}','coverQty',this.value)">
+        </td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  box.innerHTML=html;
 
 }
 
@@ -2702,12 +4014,24 @@ function renderDashboard(){
       used:0
     };
 
+    const remaining=
+      x.purchased-x.used;
+
+    const threshold=
+      getThreshold(item.id).paperReams;
+
+    const isLow=
+      threshold>0 && remaining<threshold;
+
     html+=
-      `<tr>
+      `<tr${isLow?' style="background:#fff0f1"':''}>
         <td>${escapeHtml(item.name)}</td>
         <td>${money(x.purchased)}</td>
         <td>${money(x.used)}</td>
-        <td><b>${money(x.purchased-x.used)}</b></td>
+        <td>
+          <b>${money(remaining)}</b>
+          ${isLow?'<span class="badge" style="background:#fff0f1;color:#dc3545;margin-left:6px">⚠ Low Stock</span>':''}
+        </td>
       </tr>`;
 
   });
@@ -2717,6 +4041,327 @@ function renderDashboard(){
   document.getElementById(
     "dashboardStock"
   ).innerHTML=html;
+
+  /*
+    Cover Stock by Category
+    (reconciled against production - each notebook produced
+    consumes 1 cover of the same category)
+  */
+
+  const coverMap={};
+
+  getItems().forEach(
+    item=>coverMap[item.id]={
+      purchased:0,
+      used:0
+    }
+  );
+
+  p.covers.forEach(r=>{
+
+    if(!coverMap[r.category])
+      coverMap[r.category]={
+        purchased:0,
+        used:0
+      };
+
+    coverMap[r.category].purchased+=
+      Number(r.qty)||0;
+
+  });
+
+  p.production.forEach(r=>{
+
+    if(!coverMap[r.category])
+      coverMap[r.category]={
+        purchased:0,
+        used:0
+      };
+
+    coverMap[r.category].used+=
+      Number(r.qty)||0;
+
+  });
+
+  let coverHtml=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Covers Purchased</th>
+        <th>Covers Used</th>
+        <th>Remaining</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  getItems().forEach(item=>{
+
+    const x=
+      coverMap[item.id]||{
+        purchased:0,
+        used:0
+      };
+
+    const remaining=
+      x.purchased-x.used;
+
+    const threshold=
+      getThreshold(item.id).coverQty;
+
+    const isLow=
+      threshold>0 && remaining<threshold;
+
+    coverHtml+=
+      `<tr${isLow?' style="background:#fff0f1"':''}>
+        <td>${escapeHtml(item.name)}</td>
+        <td>${x.purchased}</td>
+        <td>${x.used}</td>
+        <td>
+          <b>${remaining}</b>
+          ${isLow?'<span class="badge" style="background:#fff0f1;color:#dc3545;margin-left:6px">⚠ Low Stock</span>':''}
+        </td>
+      </tr>`;
+
+  });
+
+  coverHtml+=`</tbody></table></div>`;
+
+  document.getElementById(
+    "dashboardCoverStock"
+  ).innerHTML=coverHtml;
+
+  /*
+    Production by Category
+  */
+
+  const prodMap={};
+
+  getItems().forEach(
+    item=>prodMap[item.id]={
+      books:0,
+      sheets:0,
+      reams:0
+    }
+  );
+
+  p.production.forEach(r=>{
+
+    if(!prodMap[r.category])
+      prodMap[r.category]={
+        books:0,
+        sheets:0,
+        reams:0
+      };
+
+    prodMap[r.category].books+=
+      Number(r.qty)||0;
+
+    prodMap[r.category].sheets+=
+      Number(r.sheets)||0;
+
+    prodMap[r.category].reams+=
+      Number(r.reams)||0;
+
+  });
+
+  let prodHtml=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Category</th>
+        <th>Books Produced</th>
+        <th>Sheets Used</th>
+        <th>Reams Used</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  getItems().forEach(item=>{
+
+    const x=
+      prodMap[item.id]||{
+        books:0,
+        sheets:0,
+        reams:0
+      };
+
+    prodHtml+=
+      `<tr>
+        <td>${escapeHtml(item.name)}</td>
+        <td><b>${x.books}</b></td>
+        <td>${money(x.sheets)}</td>
+        <td>${money(x.reams)}</td>
+      </tr>`;
+
+  });
+
+  prodHtml+=`</tbody></table></div>`;
+
+  document.getElementById(
+    "dashboardProductionStock"
+  ).innerHTML=prodHtml;
+
+  renderMonthlySummary();
+
+}
+
+function renderMonthlySummary(){
+
+  const p=currentProfile();
+
+  const monthMap={};
+
+  const ensureMonth=key=>{
+
+    if(!monthMap[key])
+      monthMap[key]={
+        paperReams:0,
+        coverQty:0,
+        booksProduced:0,
+        reamsUsed:0
+      };
+
+    return monthMap[key];
+
+  };
+
+  p.paper.forEach(r=>{
+
+    if(!r.date)return;
+
+    ensureMonth(r.date.slice(0,7)).paperReams+=
+      Number(r.reams)||0;
+
+  });
+
+  p.covers.forEach(r=>{
+
+    if(!r.date)return;
+
+    ensureMonth(r.date.slice(0,7)).coverQty+=
+      Number(r.qty)||0;
+
+  });
+
+  p.production.forEach(r=>{
+
+    if(!r.date)return;
+
+    const m=
+      ensureMonth(r.date.slice(0,7));
+
+    m.booksProduced+=
+      Number(r.qty)||0;
+
+    m.reamsUsed+=
+      Number(r.reams)||0;
+
+  });
+
+  const box=
+    document.getElementById("dashboardMonthly");
+
+  if(!box)return;
+
+  const months=
+    Object.keys(monthMap).sort();
+
+  if(!months.length){
+
+    box.innerHTML=
+      `<div class="notice">No records yet for this profile.</div>`;
+
+    return;
+
+  }
+
+  let html=
+    `<div class="table-wrap">
+    <table>
+    <thead>
+      <tr>
+        <th>Month</th>
+        <th>Paper Purchased (Reams)</th>
+        <th>Covers Purchased</th>
+        <th>Books Produced</th>
+        <th>Reams Used</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  months.forEach(key=>{
+
+    const m=
+      monthMap[key];
+
+    const label=
+      formatMonthLabel(key);
+
+    html+=
+      `<tr>
+        <td><b>${escapeHtml(label)}</b></td>
+        <td>${money(m.paperReams)}</td>
+        <td>${m.coverQty}</td>
+        <td>${m.booksProduced}</td>
+        <td>${money(m.reamsUsed)}</td>
+      </tr>`;
+
+  });
+
+  html+=`</tbody></table></div>`;
+
+  box.innerHTML=html;
+
+}
+
+function formatMonthLabel(yyyyMm){
+
+  const parts=
+    yyyyMm.split("-");
+
+  const monthNames=
+    ["Jan","Feb","Mar","Apr","May","Jun",
+     "Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  const monIndex=
+    Number(parts[1])-1;
+
+  const monName=
+    monthNames[monIndex]||parts[1];
+
+  return `${monName} ${parts[0]}`;
+
+}
+
+/*
+  Formats an internal "YYYY-MM-DD" date as "DD-Mon-YYYY"
+  (e.g. "2026-08-22" -> "22-Aug-2026") for display in exported PDFs.
+*/
+function formatDisplayDate(yyyyMmDd){
+
+  if(!yyyyMmDd)return "";
+
+  const m=
+    String(yyyyMmDd).match(
+      /^(\d{4})-(\d{2})-(\d{2})$/
+    );
+
+  if(!m)return yyyyMmDd;
+
+  const monthNames=
+    ["Jan","Feb","Mar","Apr","May","Jun",
+     "Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  const monIndex=
+    Number(m[2])-1;
+
+  const monName=
+    monthNames[monIndex]||m[2];
+
+  return `${m[3]}-${monName}-${m[1]}`;
 
 }
 
@@ -2738,6 +4383,10 @@ function clearImport(){
 
   document.getElementById(
     "importConfirmBtn"
+  ).style.display="none";
+
+  document.getElementById(
+    "importSelectionControls"
   ).style.display="none";
 
   importRows=[];
@@ -2802,7 +4451,13 @@ async function previewImport(){
         if(to && r.date>to)
           return false;
 
-        const b=Number(r.bill)||0;
+        const billDigits=
+          String(r.bill||"").match(/\d+/);
+
+        const b=
+          billDigits
+            ?Number(billDigits[0])
+            :0;
 
         if(
           billFrom &&
@@ -2835,6 +4490,27 @@ async function previewImport(){
 
     }
 
+    /*
+      Mark rows that already exist in this profile's production
+      records (matched on bill + date + category + pages + qty) so
+      re-importing an overlapping date range doesn't duplicate data.
+      These are unchecked by default but can still be manually
+      re-selected if the user really wants to re-add them.
+    */
+    importRows=
+      importRows.map(r=>{
+
+        const alreadyImported=
+          isDuplicateProductionEntry(r);
+
+        return {
+          ...r,
+          alreadyImported,
+          selected:!alreadyImported
+        };
+
+      });
+
     renderImportPreview();
 
     hideLoader();
@@ -2852,6 +4528,53 @@ async function previewImport(){
     );
 
   }
+
+}
+
+function isDuplicateProductionEntry(row){
+
+  return currentProfile().production.some(r=>
+    String(r.bill||"")===String(row.bill||"") &&
+    r.date===row.date &&
+    r.category===row.category &&
+    Number(r.pages)===Number(row.pages) &&
+    Number(r.qty)===Number(row.qty)
+  );
+
+}
+
+function toggleImportRowSelection(index){
+
+  if(importRows[index])
+    importRows[index].selected=
+      !importRows[index].selected;
+
+  updateImportSelectionSummary();
+
+}
+
+function selectAllImportRows(state){
+
+  importRows.forEach(r=>r.selected=state);
+
+  renderImportPreview();
+
+}
+
+function updateImportSelectionSummary(){
+
+  const summary=
+    document.getElementById(
+      "importSelectionSummary"
+    );
+
+  if(!summary)return;
+
+  const selectedCount=
+    importRows.filter(r=>r.selected).length;
+
+  summary.textContent=
+    `${selectedCount} of ${importRows.length} row(s) selected`;
 
 }
 
@@ -2924,15 +4647,49 @@ async function extractPdfLines(buffer){
 }
 
 /*
-  Parses each line of the PDF statement using the same
-  category matching rules as before (findImportedCategory),
-  plus regex extraction for date, bill no., pages and qty.
+  Parses lines of the PDF statement.
+
+  This statement format (Invoicewise Sale Summary) prints each bill as
+  a small block: a header line with the bill number + date, followed
+  by one or more item lines, followed by a TOTAL line. The bill number
+  and date do NOT repeat on every item line, so we carry them forward
+  ("current bill" / "current date") until the next header line appears.
 */
 function convertPdfLines(lines){
 
   const result=[];
 
-  lines.forEach(line=>{
+  const headerRe=
+    /(BILL-[A-Za-z0-9]+)\s+Date\s*:\s*(\d{1,2}-[A-Za-z]{3,}-\d{2,4})/i;
+
+  let currentBill="";
+  let currentDate=today();
+
+  lines.forEach(rawLine=>{
+
+    const line=rawLine.trim();
+
+    if(!line)return;
+
+    const headerMatch=
+      line.match(headerRe);
+
+    if(headerMatch){
+
+      currentBill=headerMatch[1];
+
+      const parsedDate=
+        parseInvoiceDate(headerMatch[2]);
+
+      if(parsedDate)
+        currentDate=parsedDate;
+
+      return;
+
+    }
+
+    if(/^total\b/i.test(line))
+      return;
 
     const lower=
       line.toLowerCase();
@@ -2943,33 +4700,6 @@ function convertPdfLines(lines){
     if(!category)
       return;
 
-    let date=today();
-
-    const dateMatch=
-      line.match(
-        /\b(\d{4}-\d{1,2}-\d{1,2})\b|\b(\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})\b/
-      );
-
-    if(dateMatch){
-
-      const parsed=
-        parseFlexibleDate(dateMatch[0]);
-
-      if(parsed)
-        date=parsed;
-
-    }
-
-    let bill="";
-
-    const billMatch=
-      line.match(
-        /bill\s*(?:no\.?|number|#)?\s*[:\-]?\s*(\d+)/i
-      );
-
-    if(billMatch)
-      bill=billMatch[1];
-
     let pages=96;
 
     const pageMatch=
@@ -2978,33 +4708,50 @@ function convertPdfLines(lines){
     if(pageMatch)
       pages=Number(pageMatch[1])||96;
 
+    /*
+      Quantity is always the third-from-last number on an item line
+      (the last two are always unit price and amount). This holds
+      regardless of how many other numbers (page count, parenthetical
+      digits like "(3/1)") appear earlier in the description, since we
+      anchor from the END of the line rather than guessing from the
+      front.
+    */
+    /*
+      Strip thousands-separator commas first (this statement format
+      inconsistently adds commas to some columns like the amount but
+      not others like quantity, e.g. "1002" next to "1,596.40" on
+      other rows) so a single plain-digit regex can safely capture
+      every number without mis-splitting large values.
+    */
+    const cleanedLine=
+      line.replace(/(\d),(?=\d{3}(?:\D|$))/g,"$1");
+
+    const numberTokens=
+      cleanedLine.match(/\d+(?:\.\d+)?/g) || [];
+
+    const numeric=
+      numberTokens.map(Number);
+
     let qty=0;
 
-    const qtyMatch=
-      line.match(
-        /(?:qty|quantity)\.?\s*[:\-]?\s*(\d+)/i
-      );
+    if(numeric.length>=3){
 
-    if(qtyMatch){
+      qty=numeric[numeric.length-3];
 
-      qty=Number(qtyMatch[1]);
+    }else if(numeric.length>0){
 
-    }else{
-
-      const numbers=
-        line.match(/\d+/g);
-
-      if(numbers && numbers.length)
-        qty=Number(numbers[numbers.length-1]);
+      qty=numeric[0];
 
     }
+
+    qty=Math.round(qty);
 
     if(!(qty>0))
       return;
 
     result.push({
-      date,
-      bill,
+      date:currentDate,
+      bill:currentBill,
       category,
       pages,
       qty
@@ -3013,6 +4760,46 @@ function convertPdfLines(lines){
   });
 
   return result;
+
+}
+
+const MONTH_ABBR={
+  jan:1,feb:2,mar:3,apr:4,may:5,jun:6,
+  jul:7,aug:8,sep:9,oct:10,nov:11,dec:12
+};
+
+/*
+  Parses dates like "07-Mar-26" (day-MonAbbrev-year) as used in this
+  statement format.
+*/
+function parseInvoiceDate(raw){
+
+  const m=
+    raw.trim().match(
+      /^(\d{1,2})-([A-Za-z]{3,})-(\d{2,4})$/
+    );
+
+  if(!m)
+    return null;
+
+  const day=
+    m[1].padStart(2,"0");
+
+  const monKey=
+    m[2].slice(0,3).toLowerCase();
+
+  const monNum=
+    MONTH_ABBR[monKey];
+
+  if(!monNum)
+    return null;
+
+  let year=m[3];
+
+  if(year.length===2)
+    year="20"+year;
+
+  return `${year}-${String(monNum).padStart(2,"0")}-${day}`;
 
 }
 
@@ -3049,6 +4836,21 @@ function parseFlexibleDate(raw){
 
 }
 
+/*
+  Category matching rules (unchanged mapping, tightened detection):
+    "real" + "long"  -> Premium A4
+    "real" + "note"  -> Premium Convent
+    "007"  + "long"  -> Writon A4
+    "007"  + "note"  -> Writon Convent
+
+  Requiring "note"/"long" alongside "real"/"007" (rather than matching
+  on "real"/"007" alone) prevents unrelated product lines in the same
+  statement — e.g. "REAL DRAWING BOOK", "REAL PRACTICAL H.B", "RAF LONG
+  BOOK", "PANNI PACKING..." — from being misfiled into one of the 4
+  tracked categories. Those lines are intentionally skipped since they
+  aren't one of the 4 item types this app tracks; add them as Custom
+  Items (Item Setup page) if you want them imported too.
+*/
 function findImportedCategory(text){
 
   if(
@@ -3058,20 +4860,20 @@ function findImportedCategory(text){
     return "premium_a4";
 
   if(
+    text.includes("real") &&
+    text.includes("note")
+  )
+    return "premium_convent";
+
+  if(
     text.includes("007") &&
     text.includes("long")
   )
     return "writon_a4";
 
   if(
-    text.includes("real") &&
-    !text.includes("long")
-  )
-    return "premium_convent";
-
-  if(
     text.includes("007") &&
-    !text.includes("long")
+    text.includes("note")
   )
     return "writon_convent";
 
@@ -3104,6 +4906,10 @@ function renderImportPreview(){
       "importConfirmBtn"
     ).style.display="none";
 
+    document.getElementById(
+      "importSelectionControls"
+    ).style.display="none";
+
     return;
 
   }
@@ -3113,24 +4919,38 @@ function renderImportPreview(){
     <table>
     <thead>
       <tr>
+        <th></th>
         <th>Date</th>
         <th>Bill</th>
         <th>Category</th>
         <th>Pages</th>
         <th>Qty</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>`;
 
-  importRows.forEach(r=>{
+  importRows.forEach((r,index)=>{
 
     html+=
       `<tr>
+        <td>
+          <input type="checkbox"
+            ${r.selected?"checked":""}
+            onchange="toggleImportRowSelection(${index})">
+        </td>
         <td>${escapeHtml(r.date)}</td>
         <td>${escapeHtml(r.bill)}</td>
         <td>${escapeHtml(categoryName(r.category))}</td>
         <td>${r.pages}</td>
         <td>${r.qty}</td>
+        <td>
+          ${
+            r.alreadyImported
+              ?'<span class="badge" style="background:#fff0f1;color:#dc3545">Already imported</span>'
+              :''
+          }
+        </td>
       </tr>`;
 
   });
@@ -3143,18 +4963,31 @@ function renderImportPreview(){
     "importConfirmBtn"
   ).style.display="inline-block";
 
+  document.getElementById(
+    "importSelectionControls"
+  ).style.display="flex";
+
+  updateImportSelectionSummary();
+
 }
 
 function commitImport(){
 
-  if(!importRows.length)
-    return;
+  const selectedRows=
+    importRows.filter(r=>r.selected);
+
+  if(!selectedRows.length)
+    return flash(
+      "importMsg",
+      "No rows selected to import.",
+      false
+    );
 
   showLoader("Importing records...");
 
   setTimeout(()=>{
 
-    importRows.forEach(r=>{
+    selectedRows.forEach(r=>{
 
       const sheets=
         calculateSheets(
@@ -3181,13 +5014,21 @@ function commitImport(){
 
         sheets,
 
-        reams:sheets/500
+        reams:sheets/SHEETS_PER_REAM,
+
+        comment:"Imported from PDF statement"
 
       });
 
     });
 
     saveData();
+
+    const importedCount=
+      selectedRows.length;
+
+    const skippedCount=
+      importRows.length-importedCount;
 
     importRows=[];
 
@@ -3196,225 +5037,12 @@ function commitImport(){
     ).style.display="none";
 
     document.getElementById(
+      "importSelectionControls"
+    ).style.display="none";
+
+    document.getElementById(
       "importPreview"
     ).innerHTML=
       `<div class="notice">
-        Records imported successfully.
-      </div>`;
-
-    renderAll();
-
-    hideLoader();
-
-  },300);
-
-}
-
-
-/* =========================================================
-   BACKUP
-========================================================= */
-
-function downloadBackup(){
-
-  const blob=
-    new Blob(
-      [
-        JSON.stringify(
-          state,
-          null,
-          2
-        )
-      ],
-      {
-        type:"application/json"
-      }
-    );
-
-  const url=
-    URL.createObjectURL(blob);
-
-  const a=
-    document.createElement("a");
-
-  a.href=url;
-
-  a.download=
-    "notebook-paper-manager-backup.json";
-
-  a.click();
-
-  URL.revokeObjectURL(url);
-
-}
-
-function restoreBackup(){
-
-  const file=
-    document.getElementById(
-      "restoreFile"
-    ).files[0];
-
-  if(!file)return;
-
-  const reader=
-    new FileReader();
-
-  reader.onload=function(){
-
-    try{
-
-      const parsed=
-        JSON.parse(
-          reader.result
-        );
-
-      if(
-        !parsed.profiles ||
-        !parsed.activeProfile
-      ){
-
-        alert(
-          "Invalid backup file."
-        );
-
-        return;
-
-      }
-
-      if(!confirm(
-        "Restore this backup? Current records will be replaced."
-      ))return;
-
-      state=parsed;
-
-      saveData();
-
-      renderAll();
-
-      flash(
-        "backupMsg",
-        "Backup restored successfully."
-      );
-
-    }catch(e){
-
-      alert(
-        "Could not restore backup."
-      );
-
-    }
-
-  };
-
-  reader.readAsText(file);
-
-}
-
-
-/* =========================================================
-   REFRESH EVERYTHING
-========================================================= */
-
-function refreshPage(page){
-
-  populateAllCategories();
-
-  if(page==="dashboard")
-    renderDashboard();
-
-  if(page==="paper")
-    renderPaperStock();
-
-  if(page==="covers")
-    renderCoverStock();
-
-  if(page==="production")
-    renderProduction();
-
-  if(page==="records")
-    renderRecords();
-
-  if(page==="profiles")
-    renderProfiles();
-
-  if(page==="items")
-    renderItems();
-
-}
-
-function renderAll(){
-
-  normalizeProfile();
-
-  populateAllCategories();
-
-  renderDashboard();
-
-  renderPaperStock();
-
-  renderCoverStock();
-
-  renderProduction();
-
-  renderRecords();
-
-  renderProfiles();
-
-  renderItems();
-
-  setDefaultDates();
-
-  updateProductionInfo();
-
-}
-
-
-/* =========================================================
-   INITIALIZATION
-========================================================= */
-
-loadData();
-
-populateAllCategories();
-
-setDefaultDates();
-
-renderAll();
-
-showPage("dashboard");
-
-</script>
-
-
-<!-- SHEETJS FOR EXCEL EXPORT -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-<!-- JSPDF FOR PDF EXPORT -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-
-<!-- PDF.JS FOR PDF STATEMENT IMPORT -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-  if(typeof pdfjsLib!=="undefined"){
-    pdfjsLib.GlobalWorkerOptions.workerSrc=
-      "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-  }
-</script>
-
-<!-- PWA SERVICE WORKER REGISTRATION -->
-<script>
-  if("serviceWorker" in navigator){
-    window.addEventListener("load", function(){
-      navigator.serviceWorker
-        .register("sw.js")
-        .catch(function(err){
-          console.error("Service worker registration failed:", err);
-        });
-    });
-  }
-</script>
-
-</body>
-</html>
+        Imported ${importedCount} record(s).
+        ${skippedCount>0?`${skippedCount} row(s) left unselected w
