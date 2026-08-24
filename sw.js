@@ -1,68 +1,60 @@
-const CACHE_NAME = "notebook-paper-manager-v4";
+const CACHE_NAME = "notebook-paper-manager-v5";
 
 const CORE_ASSETS = [
-  "./index.html",
-  "./manifest.json",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png"
+    "./index.html",
+    "./manifest.json",
+    "./icons/icon-192.png",
+    "./icons/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
-  );
-  self.skipWaiting();
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(CORE_ASSETS);
+        })
+    );
+
+    self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    )
-  );
-  self.clients.claim();
+    event.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys
+                    .filter((key) => key !== CACHE_NAME)
+                    .map((key) => caches.delete(key))
+            );
+        })
+    );
+
+    self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
+    if (event.request.method !== "GET") {
+        return;
+    }
 
-      return fetch(event.request)
-        .then((response) => {
-          // Cache successful same-origin GET requests for offline use
-          if (
-            event.request.method === "GET" &&
-            response &&
-            response.status === 200 &&
-            response.type === "basic"
-          ) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached);
-    })
-  );
-});
-          // Cache successful same-origin GET requests for offline use
-          if (
-            event.request.method === "GET" &&
-            response &&
-            response.status === 200 &&
-            response.type === "basic"
-          ) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-          }
-          return response;
-        })
-        .catch(() => cached);
-    })
-  );
+    event.respondWith(
+        fetch(event.request)
+            .then((response) => {
+                if (
+                    response &&
+                    response.status === 200 &&
+                    response.type === "basic"
+                ) {
+                    const clone = response.clone();
+
+                    caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, clone);
+                    });
+                }
+
+                return response;
+            })
+            .catch(() => {
+                return caches.match(event.request);
+            })
+    );
 });
